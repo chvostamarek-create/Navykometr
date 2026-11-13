@@ -8,73 +8,129 @@
     <title>Habit Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0f172a; color: white; font-family: -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { 
+            background-color: #0f172a; 
+            color: white; 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+        }
     </style>
 </head>
-<body class="p-4 max-w-md mx-auto pb-12">
+<body class="p-4 max-w-md mx-auto pb-24">
 
     <!-- Hlavička a Progress bar -->
     <header class="mb-6 mt-2">
         <div class="flex justify-between items-center mb-2">
             <h1 class="text-2xl font-bold text-emerald-400">Moje Návyky</h1>
-            <span id="dateLabel" class="text-xs text-slate-400"></span>
+            <span id="dateLabel" class="text-xs text-slate-400 capitalize"></span>
         </div>
         <div class="bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-700">
             <div id="progressBar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
         </div>
-        <div class="flex justify-between items-center mt-1 text-xs text-slate-400">
+        <div class="flex justify-between items-center mt-1.5 text-xs text-slate-400">
             <span id="progressText">0 z 0 splněno</span>
-            <span id="streakText">🔥 Séries: 0 dní</span>
+            <span id="streakText">🔥 Max série: 0 dní</span>
         </div>
     </header>
 
-    <!-- Přidání nového návyku -->
-    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 mb-6 shadow-lg">
-        <h2 class="text-sm font-semibold text-slate-300 mb-3">✨ Přidat vlastní návyk</h2>
-        <div class="space-y-3">
-            <input type="text" id="habitInput" placeholder="Název návyku (např. 15000 kroků)..." class="w-full p-3 rounded-xl bg-slate-900 text-white border border-slate-700 text-sm outline-none focus:border-emerald-500">
-            <div class="flex gap-2">
-                <select id="timeSlotInput" class="flex-1 p-2 rounded-xl bg-slate-900 text-white border border-slate-700 text-xs outline-none">
-                    <option value="morning">🌅 Ráno</option>
-                    <option value="afternoon">☀️ Odpoledne</option>
-                    <option value="evening">🌙 Večer</option>
-                </select>
-                <input type="color" id="colorInput" value="#10b981" class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 cursor-pointer p-1">
-                <input type="text" id="iconInput" value="⭐" placeholder="Emoji" class="w-12 text-center p-2 rounded-xl bg-slate-900 text-white border border-slate-700 text-sm">
-                <button onclick="addHabit()" class="bg-emerald-500 font-bold px-5 py-2 rounded-xl text-sm active:bg-emerald-600 text-slate-950">Přidat</button>
+    <!-- Seznam návyků rozdělený podle bloků -->
+    <div id="sectionsContainer" class="space-y-4"></div>
+
+    <!-- Plovoucí zelené tlačítko (+) vpravo dole -->
+    <button onclick="openModal()" class="fixed bottom-6 right-6 w-14 h-14 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 rounded-full shadow-lg shadow-emerald-500/30 flex items-center justify-center text-3xl font-bold transition-transform z-40">
+        +
+    </button>
+
+    <!-- Modální okno (formulář pro přidání návyku) -->
+    <div id="addModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-end sm:items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 w-full max-w-md p-5 rounded-3xl border border-slate-700 shadow-2xl mb-2 sm:mb-0">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-base font-bold text-white">✨ Nový návyk</h2>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl leading-none px-2">✕</button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Název návyku</label>
+                    <input type="text" id="habitInput" placeholder="Např. 15 000 kroků nebo Cvičení..." class="w-full p-3.5 rounded-xl bg-slate-900 text-white border border-slate-700 text-sm outline-none focus:border-emerald-500">
+                </div>
+
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Kdy ho chceš plnit?</label>
+                    <select id="timeSlotInput" class="w-full p-3.5 rounded-xl bg-slate-900 text-white border border-slate-700 text-sm outline-none focus:border-emerald-500">
+                        <option value="priority">🎯 Denní priorita (Celý den)</option>
+                        <option value="morning" selected>🌅 Ráno</option>
+                        <option value="afternoon">☀️ Odpoledne</option>
+                        <option value="evening">🌙 Večer</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-3">
+                    <div class="flex-1">
+                        <label class="text-xs text-slate-400 block mb-1">Ikona (Emoji)</label>
+                        <input type="text" id="iconInput" value="⭐" class="w-full text-center p-3 rounded-xl bg-slate-900 text-white border border-slate-700 text-lg">
+                    </div>
+                    <div class="flex-1">
+                        <label class="text-xs text-slate-400 block mb-1">Barva štítku</label>
+                        <input type="color" id="colorInput" value="#10b981" class="w-full h-[50px] rounded-xl bg-slate-900 border border-slate-700 cursor-pointer p-1">
+                    </div>
+                </div>
+
+                <button onclick="addHabit()" class="w-full bg-emerald-500 font-bold py-3.5 rounded-xl text-sm active:bg-emerald-600 text-slate-950 mt-2 shadow-md">
+                    Uložit návyk
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Seznam návyků rozdělený podle bloků -->
-    <div id="sectionsContainer" class="space-y-6"></div>
-
     <script>
-        // Výchozí sada návyků, pokud uživatel ještě žádné nemá
+        // Výchozí sada návyků včetně denní priority
         const defaultHabits = [
+            { id: 10, title: 'Splnit hlavní denní cíl / trénink', timeSlot: 'priority', color: '#f59e0b', icon: '🎯', done: false, streak: 0 },
             { id: 1, title: 'Pít dostatek vody', timeSlot: 'morning', color: '#3b82f6', icon: '💧', done: false, streak: 0 },
             { id: 2, title: 'Ustlat postel', timeSlot: 'morning', color: '#10b981', icon: '🛏️', done: false, streak: 0 },
             { id: 3, title: 'Vyčistit zuby (ráno)', timeSlot: 'morning', color: '#06b6d4', icon: '🪥', done: false, streak: 0 },
             { id: 4, title: 'Přečíst 10 stránek', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖', done: false, streak: 0 },
-            { id: 5, title: 'Krátké protažení / cvičení', timeSlot: 'afternoon', color: '#f59e0b', icon: '🧘‍♂️', done: false, streak: 0 },
-            { id: 6, title: 'Vykoupat se / sprcha', timeSlot: 'evening', color: '#ec4899', icon: '🚿', done: false, streak: 0 },
+            { id: 5, title: 'Krátké protažení', timeSlot: 'afternoon', color: '#ec4899', icon: '🧘‍♂️', done: false, streak: 0 },
+            { id: 6, title: 'Sprcha / koupel', timeSlot: 'evening', color: '#6366f1', icon: '🚿', done: false, streak: 0 },
             { id: 7, title: 'Vyčistit zuby (večer)', timeSlot: 'evening', color: '#06b6d4', icon: '🪥', done: false, streak: 0 }
         ];
 
-        let habits = JSON.parse(localStorage.getItem('habits_v2')) || defaultHabits;
+        let habits = JSON.parse(localStorage.getItem('habits_v3')) || defaultHabits;
         
+        // Sledování ručně rozbalených sekcí, i když jsou hotové
+        let manuallyExpanded = {};
+
         // Kontrola denního resetu podle data
         const todayStr = new Date().toDateString();
-        const lastSavedDate = localStorage.getItem('last_saved_date');
+        const lastSavedDate = localStorage.getItem('last_saved_date_v3');
         if (lastSavedDate !== todayStr) {
-            habits.forEach(h => h.done = false); // Půlnoční reset stavu splnění
-            localStorage.setItem('last_saved_date', todayStr);
+            habits.forEach(h => h.done = false);
+            localStorage.setItem('last_saved_date_v3', todayStr);
         }
 
         document.getElementById('dateLabel').innerText = new Date().toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' });
 
+        function openModal() {
+            const modal = document.getElementById('addModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('habitInput').focus();
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('addModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function toggleSection(slotKey) {
+            manuallyExpanded[slotKey] = !manuallyExpanded[slotKey];
+            render();
+        }
+
         function saveAndRender() {
-            localStorage.setItem('habits_v2', JSON.stringify(habits));
+            localStorage.setItem('habits_v3', JSON.stringify(habits));
             render();
         }
 
@@ -83,9 +139,10 @@
             container.innerHTML = '';
 
             const slots = [
-                { key: 'morning', title: '🌅 Ranní návyky' },
-                { key: 'afternoon', title: '☀️ Odpolední návyky' },
-                { key: 'evening', title: '🌙 Večerní návyky' }
+                { key: 'priority', title: '🎯 Denní priority (Celý den)', isPriority: true },
+                { key: 'morning', title: '🌅 Ranní návyky', isPriority: false },
+                { key: 'afternoon', title: '☀️ Odpolední návyky', isPriority: false },
+                { key: 'evening', title: '🌙 Večerní návyky', isPriority: false }
             ];
 
             let totalDone = 0;
@@ -95,30 +152,62 @@
                 const slotHabits = habits.filter(h => h.timeSlot === slot.key);
                 if (slotHabits.length === 0) return;
 
+                const doneInSlot = slotHabits.filter(h => h.done).length;
+                totalDone += doneInSlot;
+                const allDone = doneInSlot === slotHabits.length;
+
+                // Pokud je vše hotovo a uživatel sekci ručně nerozbalil, zobrazí se scucnutá
+                const isCollapsed = allDone && !manuallyExpanded[slot.key];
+
+                if (isCollapsed) {
+                    container.innerHTML += `
+                        <div onclick="toggleSection('${slot.key}')" class="flex items-center justify-between p-4 bg-emerald-950/30 rounded-2xl border border-emerald-500/30 cursor-pointer transition-all active:scale-[0.99]">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-emerald-400 text-lg">✅</span>
+                                <div>
+                                    <h3 class="text-sm font-bold text-emerald-300">${slot.title}</h3>
+                                    <span class="text-xs text-emerald-500/80">Hotovo (${doneInSlot}/${slotHabits.length}) • Klepni pro zobrazení</span>
+                                </div>
+                            </div>
+                            <span class="text-emerald-500 text-xs">▼</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Vizuální zvýraznění pro prioritní sekci
+                const boxStyle = slot.isPriority 
+                    ? 'bg-amber-950/20 border-amber-500/40' 
+                    : 'bg-slate-900/60 border-slate-800';
+                
+                const titleColor = slot.isPriority ? 'text-amber-400' : 'text-slate-400';
+
                 let html = `
-                    <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-800">
-                        <h3 class="text-sm font-bold text-slate-400 mb-3 uppercase tracking-wider">${slot.title}</h3>
-                        <div class="space-y-2">
+                    <div class="p-4 rounded-2xl border ${boxStyle} transition-all">
+                        <div onclick="${allDone ? `toggleSection('${slot.key}')` : ''}" class="flex justify-between items-center mb-3 ${allDone ? 'cursor-pointer' : ''}">
+                            <h3 class="text-xs font-bold ${titleColor} uppercase tracking-wider">${slot.title}</h3>
+                            <span class="text-xs text-slate-500">${doneInSlot}/${slotHabits.length} ${allDone ? '▲' : ''}</span>
+                        </div>
+                        <div class="space-y-2.5">
                 `;
 
                 slotHabits.forEach(habit => {
-                    if (habit.done) totalDone++;
                     const realIndex = habits.findIndex(h => h.id === habit.id);
 
                     html += `
-                        <div class="flex items-center justify-between p-3.5 bg-slate-800 rounded-xl border border-slate-700/60 transition-all">
+                        <div class="flex items-center justify-between p-3.5 bg-slate-800/90 rounded-xl border border-slate-700/60 transition-all">
                             <div class="flex items-center gap-3 cursor-pointer flex-1" onclick="toggleHabit(${realIndex})">
-                                <span class="text-xl w-8 h-8 flex items-center justify-center rounded-lg" style="background-color: ${habit.color}20; color: ${habit.color}">${habit.icon}</span>
+                                <span class="text-xl w-9 h-9 flex items-center justify-center rounded-xl shrink-0" style="background-color: ${habit.color}25; color: ${habit.color}">${habit.icon}</span>
                                 <div>
-                                    <span class="${habit.done ? 'line-through text-slate-500' : 'text-white font-medium'} text-sm block">${habit.title}</span>
-                                    <span class="text-[10px] text-slate-400">🔥 ${habit.streak} dní v řadě</span>
+                                    <span class="${habit.done ? 'line-through text-slate-500' : 'text-white font-medium'} text-sm block leading-tight">${habit.title}</span>
+                                    <span class="text-[11px] text-slate-400 mt-0.5 block">🔥 ${habit.streak} dní v řadě</span>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <button onclick="toggleHabit(${realIndex})" class="w-8 h-8 rounded-full flex items-center justify-center text-sm border ${habit.done ? 'bg-emerald-500 border-emerald-400 text-slate-950 font-bold' : 'border-slate-600 bg-slate-900 text-transparent'}">
+                            <div class="flex items-center gap-2 ml-2">
+                                <button onclick="toggleHabit(${realIndex})" class="w-8 h-8 rounded-full flex items-center justify-center text-sm border transition-colors ${habit.done ? 'bg-emerald-500 border-emerald-400 text-slate-950 font-bold' : 'border-slate-600 bg-slate-900 text-transparent'}">
                                     ${habit.done ? '✓' : ''}
                                 </button>
-                                <button onclick="deleteHabit(${realIndex})" class="text-slate-500 hover:text-red-400 p-1 text-xs">🗑️</button>
+                                <button onclick="deleteHabit(${realIndex})" class="text-slate-600 hover:text-red-400 p-1.5 text-xs">🗑️</button>
                             </div>
                         </div>
                     `;
@@ -138,9 +227,13 @@
         }
 
         function toggleHabit(index) {
+            const slotKey = habits[index].timeSlot;
             habits[index].done = !habits[index].done;
+            
             if (habits[index].done) {
                 habits[index].streak += 1;
+                // Když se splní poslední položka v sekci, resetujeme ruční rozbalení, aby se pěkně sbalila
+                manuallyExpanded[slotKey] = false;
             } else {
                 habits[index].streak = Math.max(0, habits[index].streak - 1);
             }
@@ -151,10 +244,11 @@
             const titleInput = document.getElementById('habitInput');
             if (!titleInput.value.trim()) return;
 
+            const slot = document.getElementById('timeSlotInput').value;
             const newHabit = {
                 id: Date.now(),
                 title: titleInput.value.trim(),
-                timeSlot: document.getElementById('timeSlotInput').value,
+                timeSlot: slot,
                 color: document.getElementById('colorInput').value,
                 icon: document.getElementById('iconInput').value || '⭐',
                 done: false,
@@ -162,7 +256,9 @@
             };
 
             habits.push(newHabit);
+            manuallyExpanded[slot] = true; // Rozbalíme sekci, aby byl nový návyk hned vidět
             titleInput.value = '';
+            closeModal();
             saveAndRender();
         }
 
@@ -177,4 +273,3 @@
     </script>
 </body>
 </html>
-
