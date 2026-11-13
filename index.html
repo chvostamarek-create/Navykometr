@@ -4,14 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Habit Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'media', // Automaticky podle systému telefonu (světlý/tmavý)
+        }
+    </script>
     <style>
         body { 
-            background-color: #0f172a; 
-            color: white; 
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", sans-serif; 
             -webkit-tap-highlight-color: transparent; 
         }
         input[type="text"].app-title-input {
@@ -25,54 +28,53 @@
         }
     </style>
 </head>
-<body class="p-4 max-w-md mx-auto pb-28">
+<body class="p-4 max-w-md mx-auto pb-28 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
 
     <!-- Hlavička a Progress bar -->
     <header class="mb-6 mt-2">
         <div class="flex justify-between items-center mb-2">
-            <!-- Editovatelný název aplikace -->
-            <input type="text" id="appTitleInput" value="Moje Návyky" onchange="saveAppTitle(this.value)" class="text-2xl font-bold text-emerald-400 app-title-input" placeholder="Název aplikace...">
-            <span id="dateLabel" class="text-xs text-slate-400 capitalize shrink-0 ml-2"></span>
+            <input type="text" id="appTitleInput" value="Moje Návyky" onchange="saveAppTitle(this.value)" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 app-title-input" placeholder="Název aplikace...">
+            <span id="dateLabel" class="text-xs text-slate-500 dark:text-slate-400 capitalize shrink-0 ml-2"></span>
         </div>
-        <div class="bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-700">
-            <div id="progressBar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+        <div class="bg-slate-200 dark:bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-300 dark:border-slate-700 shadow-inner">
+            <div id="progressBar" class="bg-emerald-500 h-full transition-all duration-500 ease-out" style="width: 0%"></div>
         </div>
-        <div class="flex justify-between items-center mt-1.5 text-xs text-slate-400">
+        <div class="flex justify-between items-center mt-1.5 text-xs text-slate-500 dark:text-slate-400">
             <span id="progressText">0 z 0 splněno</span>
             <span id="streakText">🔥 Max série: 0 dní</span>
         </div>
     </header>
 
-    <!-- Seznam návyků rozdělený podle bloků -->
+    <!-- Seznam návyků -->
     <div id="sectionsContainer" class="space-y-4"></div>
 
-    <!-- Plovoucí tlačítka vpravo dole (+ pro vlastní, 📚 pro knihovnu) -->
+    <!-- Plovoucí tlačítka vpravo dole -->
     <div class="fixed bottom-6 right-6 flex items-center gap-3 z-40">
-        <button onclick="openCatalogModal()" class="w-14 h-14 bg-slate-800 hover:bg-slate-700 active:scale-95 text-emerald-400 border border-slate-700 rounded-full shadow-lg flex items-center justify-center text-2xl transition-transform" title="Kniha návyků">
+        <button onclick="openCatalogModal()" class="w-14 h-14 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-700 rounded-full shadow-xl flex items-center justify-center text-2xl transition-all" title="Kniha návyků">
             📚
         </button>
-        <button onclick="openModal()" class="w-14 h-14 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 rounded-full shadow-lg shadow-emerald-500/30 flex items-center justify-center text-3xl font-bold transition-transform">
+        <button onclick="openModal()" class="w-14 h-14 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white dark:text-slate-950 rounded-full shadow-xl shadow-emerald-500/30 flex items-center justify-center text-3xl font-bold transition-all">
             +
         </button>
     </div>
 
     <!-- Modální okno: Přidání vlastního návyku -->
-    <div id="addModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-end sm:items-center justify-center z-50 p-4">
-        <div class="bg-slate-800 w-full max-w-md p-5 rounded-3xl border border-slate-700 shadow-2xl mb-2 sm:mb-0">
+    <div id="addModal" class="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md hidden items-end sm:items-center justify-center z-50 p-4 transition-all">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-md p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl mb-2 sm:mb-0 transition-all">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-base font-bold text-white">✨ Nový návyk</h2>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl leading-none px-2">✕</button>
+                <h2 class="text-base font-bold">✨ Nový návyk</h2>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl leading-none px-2">✕</button>
             </div>
             
             <div class="space-y-4">
                 <div>
-                    <label class="text-xs text-slate-400 block mb-1">Název návyku</label>
-                    <input type="text" id="habitInput" placeholder="Např. 15 000 kroků..." class="w-full p-3.5 rounded-xl bg-slate-900 text-white border border-slate-700 text-sm outline-none focus:border-emerald-500">
+                    <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Název návyku</label>
+                    <input type="text" id="habitInput" placeholder="Např. 15 000 kroků..." class="w-full p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm outline-none focus:border-emerald-500 transition-colors">
                 </div>
 
                 <div>
-                    <label class="text-xs text-slate-400 block mb-1">Kdy ho chceš plnit?</label>
-                    <select id="timeSlotInput" class="w-full p-3.5 rounded-xl bg-slate-900 text-white border border-slate-700 text-sm outline-none focus:border-emerald-500">
+                    <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Kdy ho chceš plnit?</label>
+                    <select id="timeSlotInput" class="w-full p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm outline-none focus:border-emerald-500 transition-colors">
                         <option value="priority">🎯 Denní priorita (Celý den)</option>
                         <option value="morning" selected>🌅 Ráno</option>
                         <option value="afternoon">☀️ Odpoledne</option>
@@ -82,41 +84,40 @@
 
                 <div class="flex gap-3">
                     <div class="flex-1">
-                        <label class="text-xs text-slate-400 block mb-1">Ikona (Emoji)</label>
-                        <input type="text" id="iconInput" value="⭐" class="w-full text-center p-3 rounded-xl bg-slate-900 text-white border border-slate-700 text-lg">
+                        <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Ikona (Emoji)</label>
+                        <input type="text" id="iconInput" value="⭐" class="w-full text-center p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-lg">
                     </div>
                     <div class="flex-1">
-                        <label class="text-xs text-slate-400 block mb-1">Barva štítku</label>
-                        <input type="color" id="colorInput" value="#10b981" class="w-full h-[50px] rounded-xl bg-slate-900 border border-slate-700 cursor-pointer p-1">
+                        <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Barva štítku</label>
+                        <input type="color" id="colorInput" value="#10b981" class="w-full h-[50px] rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer p-1">
                     </div>
                 </div>
 
-                <button onclick="addHabit()" class="w-full bg-emerald-500 font-bold py-3.5 rounded-xl text-sm active:bg-emerald-600 text-slate-950 mt-2 shadow-md">
+                <button onclick="addHabit()" class="w-full bg-emerald-500 font-bold py-3.5 rounded-2xl text-sm active:scale-95 text-white dark:text-slate-950 mt-2 shadow-lg shadow-emerald-500/20 transition-all">
                     Uložit návyk
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Modální okno: Katalog předpřipravených návyků -->
-    <div id="catalogModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-end sm:items-center justify-center z-50 p-4">
-        <div class="bg-slate-800 w-full max-w-md max-h-[85vh] flex flex-col p-5 rounded-3xl border border-slate-700 shadow-2xl mb-2 sm:mb-0">
-            <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-700">
+    <!-- Modální okno: Katalog návyků -->
+    <div id="catalogModal" class="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md hidden items-end sm:items-center justify-center z-50 p-4 transition-all">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-md max-h-[85vh] flex flex-col p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl mb-2 sm:mb-0 transition-all">
+            <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-200 dark:border-slate-800">
                 <div>
-                    <h2 class="text-base font-bold text-white">📚 Knihovna návyků</h2>
-                    <p class="text-xs text-slate-400">Přidej si ověřené návyky jedním kliknutím</p>
+                    <h2 class="text-base font-bold">📚 Knihovna návyků</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Přidej si ověřené návyky jedním kliknutím</p>
                 </div>
-                <button onclick="closeCatalogModal()" class="text-slate-400 hover:text-white text-xl leading-none px-2">✕</button>
+                <button onclick="closeCatalogModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl leading-none px-2">✕</button>
             </div>
             
-            <!-- Seznam předpřipravených položek -->
             <div id="catalogList" class="overflow-y-auto space-y-3 pr-1 flex-1 py-2"></div>
         </div>
     </div>
 
     <script>
         const presetCatalog = [
-            { title: 'Trénink / Cvíčení 45 min', timeSlot: 'priority', color: '#f59e0b', icon: '🏋️‍♂️' },
+            { title: 'Trénink / Cvičení 45 min', timeSlot: 'priority', color: '#f59e0b', icon: '🏋️‍♂️' },
             { title: 'Ujít 10 000 kroků', timeSlot: 'priority', color: '#f59e0b', icon: '👟' },
             { title: 'Splnit hlavní pracovní úkol', timeSlot: 'priority', color: '#f59e0b', icon: '🎯' },
             { title: 'Žádné slazené nápoje', timeSlot: 'priority', color: '#f59e0b', icon: '🚫' },
@@ -161,23 +162,29 @@
             { id: 4, title: 'Přečíst 10 stránek', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖', done: false, streak: 0 }
         ];
 
-        let habits = JSON.parse(localStorage.getItem('habits_v3')) || defaultHabits;
-        let savedTitle = localStorage.getItem('app_title') || 'Moje Návyky';
+        let habits = JSON.parse(localStorage.getItem('habits_v4')) || defaultHabits;
+        let savedTitle = localStorage.getItem('app_title_v4') || 'Moje Návyky';
         document.getElementById('appTitleInput').value = savedTitle;
 
         let manuallyExpanded = {};
 
         const todayStr = new Date().toDateString();
-        const lastSavedDate = localStorage.getItem('last_saved_date_v3');
+        const lastSavedDate = localStorage.getItem('last_saved_date_v4');
         if (lastSavedDate !== todayStr) {
             habits.forEach(h => h.done = false);
-            localStorage.setItem('last_saved_date_v3', todayStr);
+            localStorage.setItem('last_saved_date_v4', todayStr);
         }
 
         document.getElementById('dateLabel').innerText = new Date().toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' });
 
         function saveAppTitle(val) {
-            localStorage.setItem('app_title', val.trim() || 'Moje Návyky');
+            localStorage.setItem('app_title_v4', val.trim() || 'Moje Návyky');
+        }
+
+        function triggerHaptic() {
+            if (window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate(15); // Jemné zakmitání telefonu
+            }
         }
 
         function openModal() {
@@ -221,15 +228,15 @@
                 const alreadyAdded = habits.some(h => h.title.toLowerCase() === item.title.toLowerCase());
 
                 list.innerHTML += `
-                    <div class="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-700/60">
+                    <div class="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700/60 transition-all">
                         <div class="flex items-center gap-3">
-                            <span class="text-xl w-8 h-8 flex items-center justify-center rounded-lg" style="background-color: ${item.color}25; color: ${item.color}">${item.icon}</span>
+                            <span class="text-xl w-9 h-9 flex items-center justify-center rounded-xl shrink-0 shadow-sm" style="background-color: ${item.color}25; color: ${item.color}">${item.icon}</span>
                             <div>
-                                <span class="text-white text-xs font-medium block">${item.title}</span>
-                                <span class="text-[10px] text-slate-400">${slotNames[item.timeSlot]}</span>
+                                <span class="text-slate-900 dark:text-white text-xs font-semibold block">${item.title}</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400">${slotNames[item.timeSlot]}</span>
                             </div>
                         </div>
-                        <button onclick="addPresetToHabits(${idx})" class="px-3 py-1.5 rounded-lg text-xs font-bold ${alreadyAdded ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-emerald-500 text-slate-950 active:bg-emerald-600'}" ${alreadyAdded ? 'disabled' : ''}>
+                        <button onclick="addPresetToHabits(${idx})" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${alreadyAdded ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-emerald-500 text-white dark:text-slate-950 active:scale-95 shadow-md shadow-emerald-500/20'}" ${alreadyAdded ? 'disabled' : ''}>
                             ${alreadyAdded ? 'Přidáno' : '+ Přidat'}
                         </button>
                     </div>
@@ -238,6 +245,7 @@
         }
 
         function addPresetToHabits(idx) {
+            triggerHaptic();
             const preset = presetCatalog[idx];
             const newHabit = {
                 id: Date.now() + Math.random(),
@@ -255,12 +263,13 @@
         }
 
         function toggleSection(slotKey) {
+            triggerHaptic();
             manuallyExpanded[slotKey] = !manuallyExpanded[slotKey];
             render();
         }
 
         function saveAndRender() {
-            localStorage.setItem('habits_v3', JSON.stringify(habits));
+            localStorage.setItem('habits_v4', JSON.stringify(habits));
             render();
         }
 
@@ -282,7 +291,6 @@
                 let slotHabits = habits.filter(h => h.timeSlot === slot.key);
                 if (slotHabits.length === 0) return;
 
-                // CHYTRÉ ŘAZENÍ: Nesplněné (done = false) jdou nahoru, splněné (done = true) dolů
                 slotHabits.sort((a, b) => (a.done === b.done)? 0 : a.done ? 1 : -1);
 
                 const doneInSlot = slotHabits.filter(h => h.done).length;
@@ -293,31 +301,31 @@
 
                 if (isCollapsed) {
                     container.innerHTML += `
-                        <div onclick="toggleSection('${slot.key}')" class="flex items-center justify-between p-4 bg-emerald-950/30 rounded-2xl border border-emerald-500/30 cursor-pointer transition-all active:scale-[0.99]">
-                            <div class="flex items-center gap-2.5">
-                                <span class="text-emerald-400 text-lg">✅</span>
+                        <div onclick="toggleSection('${slot.key}')" class="flex items-center justify-between p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl border border-emerald-300 dark:border-emerald-500/30 cursor-pointer transition-all active:scale-[0.99] shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <span class="text-emerald-600 dark:text-emerald-400 text-lg">✅</span>
                                 <div>
-                                    <h3 class="text-sm font-bold text-emerald-300">${slot.title}</h3>
-                                    <span class="text-xs text-emerald-500/80">Hotovo (${doneInSlot}/${slotHabits.length}) • Klepni pro zobrazení</span>
+                                    <h3 class="text-sm font-bold text-emerald-800 dark:text-emerald-300">${slot.title}</h3>
+                                    <span class="text-xs text-emerald-600/80 dark:text-emerald-500/80">Hotovo (${doneInSlot}/${slotHabits.length}) • Klepni pro zobrazení</span>
                                 </div>
                             </div>
-                            <span class="text-emerald-500 text-xs">▼</span>
+                            <span class="text-emerald-600 dark:text-emerald-500 text-xs font-bold">▼</span>
                         </div>
                     `;
                     return;
                 }
 
                 const boxStyle = slot.isPriority 
-                    ? 'bg-amber-950/20 border-amber-500/40' 
-                    : 'bg-slate-900/60 border-slate-800';
+                    ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-500/40' 
+                    : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 shadow-sm';
                 
-                const titleColor = slot.isPriority ? 'text-amber-400' : 'text-slate-400';
+                const titleColor = slot.isPriority ? 'text-amber-700 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400';
 
                 let html = `
-                    <div class="p-4 rounded-2xl border ${boxStyle} transition-all">
+                    <div class="p-4 rounded-3xl border ${boxStyle} transition-all">
                         <div onclick="${allDone ? `toggleSection('${slot.key}')` : ''}" class="flex justify-between items-center mb-3 ${allDone ? 'cursor-pointer' : ''}">
                             <h3 class="text-xs font-bold ${titleColor} uppercase tracking-wider">${slot.title}</h3>
-                            <span class="text-xs text-slate-500">${doneInSlot}/${slotHabits.length} ${allDone ? '▲' : ''}</span>
+                            <span class="text-xs text-slate-400">${doneInSlot}/${slotHabits.length} ${allDone ? '▲' : ''}</span>
                         </div>
                         <div class="space-y-2.5">
                 `;
@@ -326,19 +334,19 @@
                     const realIndex = habits.findIndex(h => h.id === habit.id);
 
                     html += `
-                        <div class="flex items-center justify-between p-3.5 bg-slate-800/90 rounded-xl border border-slate-700/60 transition-all">
+                        <div class="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-800/90 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 transition-all duration-300">
                             <div class="flex items-center gap-3 cursor-pointer flex-1" onclick="toggleHabit(${realIndex})">
-                                <span class="text-xl w-9 h-9 flex items-center justify-center rounded-xl shrink-0" style="background-color: ${habit.color}25; color: ${habit.color}">${habit.icon}</span>
+                                <span class="text-xl w-10 h-10 flex items-center justify-center rounded-2xl shrink-0 shadow-sm" style="background-color: ${habit.color}20; color: ${habit.color}">${habit.icon}</span>
                                 <div>
-                                    <span class="${habit.done ? 'line-through text-slate-500' : 'text-white font-medium'} text-sm block leading-tight">${habit.title}</span>
-                                    <span class="text-[11px] text-slate-400 mt-0.5 block">🔥 ${habit.streak} dní v řadě</span>
+                                    <span class="${habit.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white font-medium'} text-sm block leading-tight transition-all">${habit.title}</span>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">🔥 ${habit.streak} dní v řadě</span>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2 ml-2">
-                                <button onclick="toggleHabit(${realIndex})" class="w-8 h-8 rounded-full flex items-center justify-center text-sm border transition-colors ${habit.done ? 'bg-emerald-500 border-emerald-400 text-slate-950 font-bold' : 'border-slate-600 bg-slate-900 text-transparent'}">
+                                <button onclick="toggleHabit(${realIndex})" class="w-8 h-8 rounded-full flex items-center justify-center text-sm border transition-all ${habit.done ? 'bg-emerald-500 border-emerald-400 text-white dark:text-slate-950 font-bold shadow-md shadow-emerald-500/20' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-transparent'}">
                                     ${habit.done ? '✓' : ''}
                                 </button>
-                                <button onclick="deleteHabit(${realIndex})" class="text-slate-600 hover:text-red-400 p-1.5 text-xs">🗑️</button>
+                                <button onclick="deleteHabit(${realIndex})" class="text-slate-400 hover:text-red-500 p-1.5 text-xs transition-colors">🗑️</button>
                             </div>
                         </div>
                     `;
@@ -357,6 +365,7 @@
         }
 
         function toggleHabit(index) {
+            triggerHaptic();
             const slotKey = habits[index].timeSlot;
             habits[index].done = !habits[index].done;
             
@@ -373,6 +382,7 @@
             const titleInput = document.getElementById('habitInput');
             if (!titleInput.value.trim()) return;
 
+            triggerHaptic();
             const slot = document.getElementById('timeSlotInput').value;
             const newHabit = {
                 id: Date.now(),
@@ -392,6 +402,7 @@
         }
 
         function deleteHabit(index) {
+            triggerHaptic();
             if (confirm('Opravdu chceš tento návyk smazat?')) {
                 habits.splice(index, 1);
                 saveAndRender();
