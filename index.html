@@ -23,9 +23,8 @@
             outline: none;
             width: 100%;
         }
-        /* Dynamické akcentní barvy podle zvoleného profilu */
         :root {
-            --accent-color: #10b981; /* Emerald výchozí */
+            --accent-color: #10b981; 
         }
         .accent-text { color: var(--accent-color) !important; }
         .accent-bg { background-color: var(--accent-color) !important; }
@@ -38,15 +37,26 @@
 <body class="p-4 max-w-md mx-auto pb-28 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
 
     <!-- Hlavička a Progress bar -->
-    <header class="mb-6 mt-2">
+    <header class="mb-6 mt-2 relative">
         <div class="flex justify-between items-center mb-2">
             <input type="text" id="appTitleInput" value="Moje Návyky" onchange="saveAppTitle(this.value)" class="text-2xl font-bold accent-text app-title-input" placeholder="Název aplikace...">
             
-            <div class="flex items-center gap-1.5 shrink-0 ml-2">
-                <!-- Tlačítko pro změnu barvy akcentu -->
-                <button onclick="cycleAccentColor()" class="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-sm transition-transform active:scale-90" title="Změnit barvu aplikace">
-                    🎨
-                </button>
+            <div class="flex items-center gap-1.5 shrink-0 ml-2 relative">
+                <!-- Tlačítko pro rozbalení palety barev -->
+                <div class="relative">
+                    <button onclick="toggleColorMenu()" class="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-sm transition-transform active:scale-90" title="Vybrat barvu">
+                        🎨
+                    </button>
+                    <!-- Rozbalovací menu s barvami -->
+                    <div id="colorMenu" class="hidden absolute right-0 mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-2 z-50 flex gap-2">
+                        <button onclick="setAccentColor(0)" class="w-7 h-7 rounded-full bg-emerald-500 hover:scale-110 transition-transform" title="Zelená"></button>
+                        <button onclick="setAccentColor(1)" class="w-7 h-7 rounded-full bg-red-500 hover:scale-110 transition-transform" title="Červená"></button>
+                        <button onclick="setAccentColor(2)" class="w-7 h-7 rounded-full bg-blue-500 hover:scale-110 transition-transform" title="Modrá"></button>
+                        <button onclick="setAccentColor(3)" class="w-7 h-7 rounded-full bg-purple-500 hover:scale-110 transition-transform" title="Fialová"></button>
+                        <button onclick="setAccentColor(4)" class="w-7 h-7 rounded-full bg-amber-500 hover:scale-110 transition-transform" title="Oranžová"></button>
+                    </div>
+                </div>
+
                 <!-- Tlačítko pro přepínání režimu (Světlý / Tmavý) -->
                 <button onclick="toggleTheme()" id="themeToggleBtn" class="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-base transition-transform active:scale-90" title="Přepnout vzhled">
                     🌙
@@ -134,7 +144,6 @@
     </div>
 
     <script>
-        // Definice dostupných akcentních barev
         const accentPalettes = [
             { name: 'Zelená', color: '#10b981' },   // Emerald
             { name: 'Červená', color: '#ef4444' },  // Ruby Red
@@ -146,17 +155,32 @@
         let currentAccentIndex = parseInt(localStorage.getItem('app_accent_idx')) || 0;
         applyAccentColor(currentAccentIndex);
 
-        function cycleAccentColor() {
+        function toggleColorMenu() {
+            const menu = document.getElementById('colorMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        function setAccentColor(index) {
             triggerHaptic();
-            currentAccentIndex = (currentAccentIndex + 1) % accentPalettes.length;
-            applyAccentColor(currentAccentIndex);
-            localStorage.setItem('app_accent_idx', currentAccentIndex);
+            currentAccentIndex = index;
+            applyAccentColor(index);
+            localStorage.setItem('app_accent_idx', index);
+            document.getElementById('colorMenu').classList.add('hidden');
         }
 
         function applyAccentColor(index) {
             const palette = accentPalettes[index];
             document.documentElement.style.setProperty('--accent-color', palette.color);
         }
+
+        // Zavření menu barev při kliknutí mimo
+        window.addEventListener('click', function(e) {
+            const menu = document.getElementById('colorMenu');
+            const btn = e.target.closest('button');
+            if (!btn || (!btn.getAttribute('onclick')?.includes('toggleColorMenu') && !btn.getAttribute('onclick')?.includes('setAccentColor'))) {
+                menu.classList.add('hidden');
+            }
+        });
 
         // Správa vzhledu (Light / Dark režim)
         const htmlRoot = document.getElementById('htmlRoot');
@@ -370,15 +394,15 @@
 
                 if (isCollapsed) {
                     container.innerHTML += `
-                        <div onclick="toggleSection('${slot.key}')" class="flex items-center justify-between p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl border border-emerald-300 dark:border-emerald-500/30 cursor-pointer transition-all active:scale-[0.99] shadow-sm">
+                        <div onclick="toggleSection('${slot.key}')" class="flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all active:scale-[0.99] shadow-sm" style="background-color: var(--accent-color); color: #ffffff; border-color: var(--accent-color);">
                             <div class="flex items-center gap-3">
-                                <span class="accent-text text-lg">✅</span>
+                                <span class="text-lg">✅</span>
                                 <div>
-                                    <h3 class="text-sm font-bold accent-text">${slot.title}</h3>
-                                    <span class="text-xs text-slate-500 dark:text-slate-400">Hotovo (${doneInSlot}/${slotHabits.length}) • Klepni pro zobrazení</span>
+                                    <h3 class="text-sm font-bold">${slot.title}</h3>
+                                    <span class="text-xs opacity-90">Hotovo (${doneInSlot}/${slotHabits.length}) • Klepni pro zobrazení</span>
                                 </div>
                             </div>
-                            <span class="accent-text text-xs font-bold">▼</span>
+                            <span class="text-xs font-bold">▼</span>
                         </div>
                     `;
                     return;
