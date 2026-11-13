@@ -173,7 +173,6 @@
             document.documentElement.style.setProperty('--accent-color', palette.color);
         }
 
-        // Zavření menu barev při kliknutí mimo
         window.addEventListener('click', function(e) {
             const menu = document.getElementById('colorMenu');
             const btn = e.target.closest('button');
@@ -182,7 +181,6 @@
             }
         });
 
-        // Správa vzhledu (Light / Dark režim)
         const htmlRoot = document.getElementById('htmlRoot');
         const themeBtn = document.getElementById('themeToggleBtn');
         
@@ -393,16 +391,17 @@
                 const isCollapsed = allDone && !manuallyExpanded[slot.key];
 
                 if (isCollapsed) {
+                    // Jemné podsvícení na cca 30 % opacity (funguje jak pro světlý, tak tmavý režim)
                     container.innerHTML += `
-                        <div onclick="toggleSection('${slot.key}')" class="flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all active:scale-[0.99] shadow-sm" style="background-color: var(--accent-color); color: #ffffff; border-color: var(--accent-color);">
+                        <div onclick="toggleSection('${slot.key}')" class="flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all active:scale-[0.99] shadow-sm" style="background-color: var(--accent-color); opacity: 0.3; border-color: var(--accent-color);">
                             <div class="flex items-center gap-3">
                                 <span class="text-lg">✅</span>
                                 <div>
-                                    <h3 class="text-sm font-bold">${slot.title}</h3>
-                                    <span class="text-xs opacity-90">Hotovo (${doneInSlot}/${slotHabits.length}) • Klepni pro zobrazení</span>
+                                    <h3 class="text-sm font-bold text-slate-950 dark:text-white">${slot.title}</h3>
+                                    <span class="text-xs text-slate-900 dark:text-white">Hotovo (${doneInSlot}/${slotHabits.length}) • Klepni pro zobrazení</span>
                                 </div>
                             </div>
-                            <span class="text-xs font-bold">▼</span>
+                            <span class="text-xs font-bold text-slate-950 dark:text-white">▼</span>
                         </div>
                     `;
                     return;
