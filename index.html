@@ -14,15 +14,25 @@
             font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
             -webkit-tap-highlight-color: transparent; 
         }
+        input[type="text"].app-title-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            width: 100%;
+        }
+        input[type="text"].app-title-input:focus {
+            border-bottom: 1px dashed #10b981;
+        }
     </style>
 </head>
-<body class="p-4 max-w-md mx-auto pb-24">
+<body class="p-4 max-w-md mx-auto pb-28">
 
     <!-- Hlavička a Progress bar -->
     <header class="mb-6 mt-2">
         <div class="flex justify-between items-center mb-2">
-            <h1 class="text-2xl font-bold text-emerald-400">Moje Návyky</h1>
-            <span id="dateLabel" class="text-xs text-slate-400 capitalize"></span>
+            <!-- Editovatelný název aplikace -->
+            <input type="text" id="appTitleInput" value="Moje Návyky" onchange="saveAppTitle(this.value)" class="text-2xl font-bold text-emerald-400 app-title-input" placeholder="Název aplikace...">
+            <span id="dateLabel" class="text-xs text-slate-400 capitalize shrink-0 ml-2"></span>
         </div>
         <div class="bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-700">
             <div id="progressBar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
@@ -36,12 +46,17 @@
     <!-- Seznam návyků rozdělený podle bloků -->
     <div id="sectionsContainer" class="space-y-4"></div>
 
-    <!-- Plovoucí zelené tlačítko (+) vpravo dole -->
-    <button onclick="openModal()" class="fixed bottom-6 right-6 w-14 h-14 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 rounded-full shadow-lg shadow-emerald-500/30 flex items-center justify-center text-3xl font-bold transition-transform z-40">
-        +
-    </button>
+    <!-- Plovoucí tlačítka vpravo dole (+ pro vlastní, 📚 pro knihovnu) -->
+    <div class="fixed bottom-6 right-6 flex items-center gap-3 z-40">
+        <button onclick="openCatalogModal()" class="w-14 h-14 bg-slate-800 hover:bg-slate-700 active:scale-95 text-emerald-400 border border-slate-700 rounded-full shadow-lg flex items-center justify-center text-2xl transition-transform" title="Kniha návyků">
+            📚
+        </button>
+        <button onclick="openModal()" class="w-14 h-14 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 rounded-full shadow-lg shadow-emerald-500/30 flex items-center justify-center text-3xl font-bold transition-transform">
+            +
+        </button>
+    </div>
 
-    <!-- Modální okno (formulář pro přidání návyku) -->
+    <!-- Modální okno: Přidání vlastního návyku -->
     <div id="addModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-end sm:items-center justify-center z-50 p-4">
         <div class="bg-slate-800 w-full max-w-md p-5 rounded-3xl border border-slate-700 shadow-2xl mb-2 sm:mb-0">
             <div class="flex justify-between items-center mb-4">
@@ -52,7 +67,7 @@
             <div class="space-y-4">
                 <div>
                     <label class="text-xs text-slate-400 block mb-1">Název návyku</label>
-                    <input type="text" id="habitInput" placeholder="Např. 15 000 kroků nebo Cvičení..." class="w-full p-3.5 rounded-xl bg-slate-900 text-white border border-slate-700 text-sm outline-none focus:border-emerald-500">
+                    <input type="text" id="habitInput" placeholder="Např. 15 000 kroků..." class="w-full p-3.5 rounded-xl bg-slate-900 text-white border border-slate-700 text-sm outline-none focus:border-emerald-500">
                 </div>
 
                 <div>
@@ -83,25 +98,82 @@
         </div>
     </div>
 
+    <!-- Modální okno: Katalog předpřipravených návyků -->
+    <div id="catalogModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-end sm:items-center justify-center z-50 p-4">
+        <div class="bg-slate-800 w-full max-w-md max-h-[85vh] flex flex-col p-5 rounded-3xl border border-slate-700 shadow-2xl mb-2 sm:mb-0">
+            <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-700">
+                <div>
+                    <h2 class="text-base font-bold text-white">📚 Knihovna návyků</h2>
+                    <p class="text-xs text-slate-400">Přidej si ověřené návyky jedním kliknutím</p>
+                </div>
+                <button onclick="closeCatalogModal()" class="text-slate-400 hover:text-white text-xl leading-none px-2">✕</button>
+            </div>
+            
+            <!-- Seznam předpřipravených položek -->
+            <div id="catalogList" class="overflow-y-auto space-y-3 pr-1 flex-1 py-2"></div>
+        </div>
+    </div>
+
     <script>
-        // Výchozí sada návyků včetně denní priority
+        // Velká knihovna předpřipravených návyků (přes 30 nápadů)
+        const presetCatalog = [
+            // Denní priority
+            { title: 'Trénink / Cvíčení 45 min', timeSlot: 'priority', color: '#f59e0b', icon: '🏋️‍♂️' },
+            { title: 'Ujít 10 000 kroků', timeSlot: 'priority', color: '#f59e0b', icon: '👟' },
+            { title: 'Splnit hlavní pracovní úkol', timeSlot: 'priority', color: '#f59e0b', icon: '🎯' },
+            { title: 'Žádné slazené nápoje', timeSlot: 'priority', color: '#f59e0b', icon: '🚫' },
+            { title: 'Utrácet s rozmyslem (žádné zbytečnosti)', timeSlot: 'priority', color: '#f59e0b', icon: '💳' },
+            
+            // Ranní
+            { title: 'Pít dostatek vody (sklenice po probuzení)', timeSlot: 'morning', color: '#3b82f6', icon: '💧' },
+            { title: 'Ustlat postel', timeSlot: 'morning', color: '#10b981', icon: '🛏️' },
+            { title: 'Ranní protažení / jóga 10 min', timeSlot: 'morning', color: '#10b981', icon: '🧘‍♂️' },
+            { title: 'Vyčistit zuby (ráno)', timeSlot: 'morning', color: '#06b6d4', icon: '🪥' },
+            { title: 'Studená sprcha / otužování', timeSlot: 'morning', color: '#06b6d4', icon: '🚿' },
+            { title: 'Zdravá snídaně bez cukru', timeSlot: 'morning', color: '#10b981', icon: '🍳' },
+            { title: 'Vzít ranní doplňky stravy / vitamíny', timeSlot: 'morning', color: '#8b5cf6', icon: '💊' },
+            { title: 'Ranní káva v klidu bez telefonu', timeSlot: 'morning', color: '#f59e0b', icon: '☕' },
+            { title: 'Zápis vděčnosti (3 věci)', timeSlot: 'morning', color: '#ec4899', icon: '✍️' },
+            { title: 'Vyvětrat ložnici', timeSlot: 'morning', color: '#3b82f6', icon: '🪟' },
+
+            // Odpolední
+            { title: 'Přečíst 10 stránek knížky', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖' },
+            { title: 'Krátká procházka na denním světle', timeSlot: 'afternoon', color: '#3b82f6', icon: '🌳' },
+            { title: 'Práce na vlastním projektu / snu', timeSlot: 'afternoon', color: '#6366f1', icon: '💻' },
+            { title: 'Uklidit si pracovní stůl', timeSlot: 'afternoon', color: '#10b981', icon: '🧽' },
+            { title: 'Jíst ovoce nebo zeleninu', timeSlot: 'afternoon', color: '#10b981', icon: '🍎' },
+            { title: 'Procvičit cizí jazyk (10 min)', timeSlot: 'afternoon', color: '#f59e0b', icon: '🌍' },
+            { title: 'Vyřídit důležité maily / zprávy', timeSlot: 'afternoon', color: '#3b82f6', icon: '✉️' },
+            { title: 'Chvilka ticha bez obrazovek', timeSlot: 'afternoon', color: '#8b5cf6', icon: '🧘' },
+            { title: 'Dýchací cvičení / pauza', timeSlot: 'afternoon', color: '#06b6d4', icon: '🌬️' },
+
+            // Večerní
+            { title: 'Vykoupat se / sprcha', timeSlot: 'evening', color: '#6366f1', icon: '🚿' },
+            { title: 'Vyčistit zuby a mezizubní kartáčky', timeSlot: 'evening', color: '#06b6d4', icon: '🪥' },
+            { title: 'Vypnout obrazovky 30 min před spaním', timeSlot: 'evening', color: '#ec4899', icon: '📵' },
+            { title: 'Připravit věci na zítřek', timeSlot: 'evening', color: '#f59e0b', icon: '🎒' },
+            { title: 'Zkontrolovat plán na zítřejší den', timeSlot: 'evening', color: '#3b82f6', icon: '📅' },
+            { title: 'Vyvětrat ložnici před spaním', timeSlot: 'evening', color: '#3b82f6', icon: '🌙' },
+            { title: 'Přečíst si kapitolu před spaním', timeSlot: 'evening', color: '#8b5cf6', icon: '🛌' },
+            { title: 'Jít spát včas (do 23:00)', timeSlot: 'evening', color: '#6366f1', icon: '😴' }
+        ];
+
+        // Výchozí sada pro nový start
         const defaultHabits = [
             { id: 10, title: 'Splnit hlavní denní cíl / trénink', timeSlot: 'priority', color: '#f59e0b', icon: '🎯', done: false, streak: 0 },
             { id: 1, title: 'Pít dostatek vody', timeSlot: 'morning', color: '#3b82f6', icon: '💧', done: false, streak: 0 },
             { id: 2, title: 'Ustlat postel', timeSlot: 'morning', color: '#10b981', icon: '🛏️', done: false, streak: 0 },
             { id: 3, title: 'Vyčistit zuby (ráno)', timeSlot: 'morning', color: '#06b6d4', icon: '🪥', done: false, streak: 0 },
-            { id: 4, title: 'Přečíst 10 stránek', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖', done: false, streak: 0 },
-            { id: 5, title: 'Krátké protažení', timeSlot: 'afternoon', color: '#ec4899', icon: '🧘‍♂️', done: false, streak: 0 },
-            { id: 6, title: 'Sprcha / koupel', timeSlot: 'evening', color: '#6366f1', icon: '🚿', done: false, streak: 0 },
-            { id: 7, title: 'Vyčistit zuby (večer)', timeSlot: 'evening', color: '#06b6d4', icon: '🪥', done: false, streak: 0 }
+            { id: 4, title: 'Přečíst 10 stránek', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖', done: false, streak: 0 }
         ];
 
         let habits = JSON.parse(localStorage.getItem('habits_v3')) || defaultHabits;
-        
-        // Sledování ručně rozbalených sekcí, i když jsou hotové
+        let savedTitle = localStorage.getItem('app_title') || 'Moje Návyky';
+        document.getElementById('appTitleInput').value = savedTitle;
+
         let manuallyExpanded = {};
 
-        // Kontrola denního resetu podle data
+        // Denní reset
         const todayStr = new Date().toDateString();
         const lastSavedDate = localStorage.getItem('last_saved_date_v3');
         if (lastSavedDate !== todayStr) {
@@ -110,6 +182,10 @@
         }
 
         document.getElementById('dateLabel').innerText = new Date().toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' });
+
+        function saveAppTitle(val) {
+            localStorage.setItem('app_title', val.trim() || 'Moje Návyky');
+        }
 
         function openModal() {
             const modal = document.getElementById('addModal');
@@ -122,6 +198,68 @@
             const modal = document.getElementById('addModal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+        }
+
+        function openCatalogModal() {
+            renderCatalog();
+            const modal = document.getElementById('catalogModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeCatalogModal() {
+            const modal = document.getElementById('catalogModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function renderCatalog() {
+            const list = document.getElementById('catalogList');
+            list.innerHTML = '';
+
+            const slotNames = {
+                priority: '🎯 Denní priority',
+                morning: '🌅 Ranní návyky',
+                afternoon: '☀️ Odpolední návyky',
+                evening: '🌙 Večer'
+            };
+
+            presetCatalogforEach = presetCatalog.forEach((item, idx) => {
+                // Zkontroluj, jestli už ho uživatel nemá v seznamu
+                const alreadyAdded = habits.some(h => h.title.toLowerCase() === item.title.toLowerCase());
+
+                list.innerHTML += `
+                    <div class="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-700/60">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl w-8 h-8 flex items-center justify-center rounded-lg" style="background-color: ${item.color}25; color: ${item.color}">${item.icon}</span>
+                            <div>
+                                <span class="text-white text-xs font-medium block">${item.title}</span>
+                                <span class="text-[10px] text-slate-400">${slotNames[item.timeSlot]}</span>
+                            </div>
+                        </div>
+                        <button onclick="addPresetToHabits(${idx})" class="px-3 py-1.5 rounded-lg text-xs font-bold ${alreadyAdded ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-emerald-500 text-slate-950 active:bg-emerald-600'}" ${alreadyAdded ? 'disabled' : ''}>
+                            ${alreadyAdded ? 'Přidáno' : '+ Přidat'}
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        function addPresetToHabits(idx) {
+            const preset = presetCatalog[idx];
+            const newHabit = {
+                id: Date.now() + Math.random(),
+                title: preset.title,
+                timeSlot: preset.timeSlot,
+                color: preset.color,
+                icon: preset.icon,
+                done: false,
+                streak: 0
+            };
+            habits.push(newHabit);
+            manuallyExpanded[preset.timeSlot] = true;
+            saveAndRender();
+            renderCatalog(); // Aktualizuje tlačítka v katalogu na "Přidáno"
         }
 
         function toggleSection(slotKey) {
@@ -156,7 +294,6 @@
                 totalDone += doneInSlot;
                 const allDone = doneInSlot === slotHabits.length;
 
-                // Pokud je vše hotovo a uživatel sekci ručně nerozbalil, zobrazí se scucnutá
                 const isCollapsed = allDone && !manuallyExpanded[slot.key];
 
                 if (isCollapsed) {
@@ -175,7 +312,6 @@
                     return;
                 }
 
-                // Vizuální zvýraznění pro prioritní sekci
                 const boxStyle = slot.isPriority 
                     ? 'bg-amber-950/20 border-amber-500/40' 
                     : 'bg-slate-900/60 border-slate-800';
@@ -217,7 +353,6 @@
                 container.innerHTML += html;
             });
 
-            // Update Progress Bar
             const percent = totalCount > 0 ? Math.round((totalDone / totalCount) * 100) : 0;
             document.getElementById('progressBar').style.width = percent + '%';
             document.getElementById('progressText').innerText = `${totalDone} z ${totalCount} splněno (${percent} %)`;
@@ -232,7 +367,6 @@
             
             if (habits[index].done) {
                 habits[index].streak += 1;
-                // Když se splní poslední položka v sekci, resetujeme ruční rozbalení, aby se pěkně sbalila
                 manuallyExpanded[slotKey] = false;
             } else {
                 habits[index].streak = Math.max(0, habits[index].streak - 1);
@@ -256,7 +390,7 @@
             };
 
             habits.push(newHabit);
-            manuallyExpanded[slot] = true; // Rozbalíme sekci, aby byl nový návyk hned vidět
+            manuallyExpanded[slot] = true;
             titleInput.value = '';
             closeModal();
             saveAndRender();
