@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class', // Přepínání pomocí třídy na HTML elementu
+            darkMode: 'class',
         }
     </script>
     <style>
@@ -23,8 +23,15 @@
             outline: none;
             width: 100%;
         }
-        input[type="text"].app-title-input:focus {
-            border-bottom: 1px dashed #10b981;
+        /* Dynamické akcentní barvy podle zvoleného profilu */
+        :root {
+            --accent-color: #10b981; /* Emerald výchozí */
+        }
+        .accent-text { color: var(--accent-color) !important; }
+        .accent-bg { background-color: var(--accent-color) !important; }
+        .accent-border { border-color: var(--accent-color) !important; }
+        input.app-title-input:focus {
+            border-bottom: 1px dashed var(--accent-color);
         }
     </style>
 </head>
@@ -33,18 +40,22 @@
     <!-- Hlavička a Progress bar -->
     <header class="mb-6 mt-2">
         <div class="flex justify-between items-center mb-2">
-            <input type="text" id="appTitleInput" value="Moje Návyky" onchange="saveAppTitle(this.value)" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 app-title-input" placeholder="Název aplikace...">
+            <input type="text" id="appTitleInput" value="Moje Návyky" onchange="saveAppTitle(this.value)" class="text-2xl font-bold accent-text app-title-input" placeholder="Název aplikace...">
             
-            <div class="flex items-center gap-2 shrink-0 ml-2">
-                <!-- Tlačítko pro přímé přepínání režimu (Světlý / Tmavý) -->
+            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                <!-- Tlačítko pro změnu barvy akcentu -->
+                <button onclick="cycleAccentColor()" class="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-sm transition-transform active:scale-90" title="Změnit barvu aplikace">
+                    🎨
+                </button>
+                <!-- Tlačítko pro přepínání režimu (Světlý / Tmavý) -->
                 <button onclick="toggleTheme()" id="themeToggleBtn" class="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-base transition-transform active:scale-90" title="Přepnout vzhled">
                     🌙
                 </button>
-                <span id="dateLabel" class="text-xs text-slate-500 dark:text-slate-400 capitalize"></span>
+                <span id="dateLabel" class="text-xs text-slate-500 dark:text-slate-400 capitalize ml-1"></span>
             </div>
         </div>
         <div class="bg-slate-200 dark:bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-300 dark:border-slate-700 shadow-inner">
-            <div id="progressBar" class="bg-emerald-500 h-full transition-all duration-500 ease-out" style="width: 0%"></div>
+            <div id="progressBar" class="accent-bg h-full transition-all duration-500 ease-out" style="width: 0%"></div>
         </div>
         <div class="flex justify-between items-center mt-1.5 text-xs text-slate-500 dark:text-slate-400">
             <span id="progressText">0 z 0 splněno</span>
@@ -57,10 +68,10 @@
 
     <!-- Plovoucí tlačítka vpravo dole -->
     <div class="fixed bottom-6 right-6 flex items-center gap-3 z-40">
-        <button onclick="openCatalogModal()" class="w-14 h-14 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 text-emerald-600 dark:text-emerald-400 border border-slate-200 dark:border-slate-700 rounded-full shadow-xl flex items-center justify-center text-2xl transition-all" title="Kniha návyků">
+        <button onclick="openCatalogModal()" class="w-14 h-14 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 accent-text border border-slate-200 dark:border-slate-700 rounded-full shadow-xl flex items-center justify-center text-2xl transition-all" title="Kniha návyků">
             📚
         </button>
-        <button onclick="openModal()" class="w-14 h-14 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white dark:text-slate-950 rounded-full shadow-xl shadow-emerald-500/30 flex items-center justify-center text-3xl font-bold transition-all">
+        <button onclick="openModal()" class="w-14 h-14 accent-bg hover:opacity-90 active:scale-95 text-white dark:text-slate-950 rounded-full shadow-xl flex items-center justify-center text-3xl font-bold transition-all">
             +
         </button>
     </div>
@@ -76,12 +87,12 @@
             <div class="space-y-4">
                 <div>
                     <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Název návyku</label>
-                    <input type="text" id="habitInput" placeholder="Např. 15 000 kroků..." class="w-full p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm outline-none focus:border-emerald-500 transition-colors">
+                    <input type="text" id="habitInput" placeholder="Např. 15 000 kroků..." class="w-full p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm outline-none transition-colors">
                 </div>
 
                 <div>
                     <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Kdy ho chceš plnit?</label>
-                    <select id="timeSlotInput" class="w-full p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm outline-none focus:border-emerald-500 transition-colors">
+                    <select id="timeSlotInput" class="w-full p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm outline-none transition-colors">
                         <option value="priority">🎯 Denní priorita (Celý den)</option>
                         <option value="morning" selected>🌅 Ráno</option>
                         <option value="afternoon">☀️ Odpoledne</option>
@@ -100,7 +111,7 @@
                     </div>
                 </div>
 
-                <button onclick="addHabit()" class="w-full bg-emerald-500 font-bold py-3.5 rounded-2xl text-sm active:scale-95 text-white dark:text-slate-950 mt-2 shadow-lg shadow-emerald-500/20 transition-all">
+                <button onclick="addHabit()" class="w-full accent-bg font-bold py-3.5 rounded-2xl text-sm active:scale-95 text-white dark:text-slate-950 mt-2 shadow-lg transition-all">
                     Uložit návyk
                 </button>
             </div>
@@ -123,13 +134,36 @@
     </div>
 
     <script>
+        // Definice dostupných akcentních barev
+        const accentPalettes = [
+            { name: 'Zelená', color: '#10b981' },   // Emerald
+            { name: 'Červená', color: '#ef4444' },  // Ruby Red
+            { name: 'Modrá', color: '#3b82f6' },    // Ocean Blue
+            { name: 'Fialová', color: '#8b5cf6' },  // Royal Purple
+            { name: 'Oranžová', color: '#f59e0b' }  // Sunset Orange
+        ];
+
+        let currentAccentIndex = parseInt(localStorage.getItem('app_accent_idx')) || 0;
+        applyAccentColor(currentAccentIndex);
+
+        function cycleAccentColor() {
+            triggerHaptic();
+            currentAccentIndex = (currentAccentIndex + 1) % accentPalettes.length;
+            applyAccentColor(currentAccentIndex);
+            localStorage.setItem('app_accent_idx', currentAccentIndex);
+        }
+
+        function applyAccentColor(index) {
+            const palette = accentPalettes[index];
+            document.documentElement.style.setProperty('--accent-color', palette.color);
+        }
+
         // Správa vzhledu (Light / Dark režim)
         const htmlRoot = document.getElementById('htmlRoot');
         const themeBtn = document.getElementById('themeToggleBtn');
         
         let currentTheme = localStorage.getItem('app_theme');
         if (!currentTheme) {
-            // Výchozí podle systému iPhonu
             currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
         applyTheme(currentTheme);
@@ -144,10 +178,10 @@
         function applyTheme(theme) {
             if (theme === 'dark') {
                 htmlRoot.classList.add('dark');
-                themeBtn.innerText = '☀️'; // Když je tma, ikonka nabídne sluníčko pro přepnutí do světla
+                themeBtn.innerText = '☀️';
             } else {
                 htmlRoot.classList.remove('dark');
-                themeBtn.innerText = '🌙'; // Když je světlo, ikonka nabídne měsíc pro tmavý režim
+                themeBtn.innerText = '🌙';
             }
         }
 
@@ -197,29 +231,28 @@
             { id: 4, title: 'Přečíst 10 stránek', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖', done: false, streak: 0 }
         ];
 
-        let habits = JSON.parse(localStorage.getItem('habits_v5')) || defaultHabits;
-        let savedTitle = localStorage.getItem('app_title_v5') || 'Moje Návyky';
+        let habits = JSON.parse(localStorage.getItem('habits_v6')) || defaultHabits;
+        let savedTitle = localStorage.getItem('app_title_v6') || 'Moje Návyky';
         document.getElementById('appTitleInput').value = savedTitle;
 
         let manuallyExpanded = {};
 
         const todayStr = new Date().toDateString();
-        const lastSavedDate = localStorage.getItem('last_saved_date_v5');
+        const lastSavedDate = localStorage.getItem('last_saved_date_v6');
         if (lastSavedDate !== todayStr) {
             habits.forEach(h => h.done = false);
-            localStorage.setItem('last_saved_date_v5', todayStr);
+            localStorage.setItem('last_saved_date_v6', todayStr);
         }
 
         document.getElementById('dateLabel').innerText = new Date().toLocaleDateString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric' });
 
         function saveAppTitle(val) {
-            localStorage.setItem('app_title_v5', val.trim() || 'Moje Návyky');
+            localStorage.setItem('app_title_v6', val.trim() || 'Moje Návyky');
         }
 
         function triggerHaptic() {
-            // Silnější pokus o haptiku na podporovaných zařízeních
             if (window.navigator && typeof window.navigator.vibrate === 'function') {
-                window.navigator.vibrate([30, 40, 30]); // Výraznější vzorec vibrace
+                window.navigator.vibrate([30, 40, 30]);
             }
         }
 
@@ -272,7 +305,7 @@
                                 <span class="text-[10px] text-slate-500 dark:text-slate-400">${slotNames[item.timeSlot]}</span>
                             </div>
                         </div>
-                        <button onclick="addPresetToHabits(${idx})" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${alreadyAdded ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-emerald-500 text-white dark:text-slate-950 active:scale-95 shadow-md shadow-emerald-500/20'}" ${alreadyAdded ? 'disabled' : ''}>
+                        <button onclick="addPresetToHabits(${idx})" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${alreadyAdded ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed' : 'accent-bg text-white dark:text-slate-950 active:scale-95 shadow-md'}" ${alreadyAdded ? 'disabled' : ''}>
                             ${alreadyAdded ? 'Přidáno' : '+ Přidat'}
                         </button>
                     </div>
@@ -305,7 +338,7 @@
         }
 
         function saveAndRender() {
-            localStorage.setItem('habits_v5', JSON.stringify(habits));
+            localStorage.setItem('habits_v6', JSON.stringify(habits));
             render();
         }
 
@@ -339,13 +372,13 @@
                     container.innerHTML += `
                         <div onclick="toggleSection('${slot.key}')" class="flex items-center justify-between p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl border border-emerald-300 dark:border-emerald-500/30 cursor-pointer transition-all active:scale-[0.99] shadow-sm">
                             <div class="flex items-center gap-3">
-                                <span class="text-emerald-600 dark:text-emerald-400 text-lg">✅</span>
+                                <span class="accent-text text-lg">✅</span>
                                 <div>
-                                    <h3 class="text-sm font-bold text-emerald-800 dark:text-emerald-300">${slot.title}</h3>
-                                    <span class="text-xs text-emerald-600/80 dark:text-emerald-500/80">Hotovo (${doneInSlot}/${slotHabits.length}) • Klepni pro zobrazení</span>
+                                    <h3 class="text-sm font-bold accent-text">${slot.title}</h3>
+                                    <span class="text-xs text-slate-500 dark:text-slate-400">Hotovo (${doneInSlot}/${slotHabits.length}) • Klepni pro zobrazení</span>
                                 </div>
                             </div>
-                            <span class="text-emerald-600 dark:text-emerald-500 text-xs font-bold">▼</span>
+                            <span class="accent-text text-xs font-bold">▼</span>
                         </div>
                     `;
                     return;
@@ -379,7 +412,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-2 ml-2">
-                                <button onclick="toggleHabit(${realIndex})" class="w-8 h-8 rounded-full flex items-center justify-center text-sm border transition-all ${habit.done ? 'bg-emerald-500 border-emerald-400 text-white dark:text-slate-950 font-bold shadow-md shadow-emerald-500/20' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-transparent'}">
+                                <button onclick="toggleHabit(${realIndex})" class="w-8 h-8 rounded-full flex items-center justify-center text-sm border transition-all ${habit.done ? 'accent-bg accent-border text-white dark:text-slate-950 font-bold shadow-md' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-transparent'}">
                                     ${habit.done ? '✓' : ''}
                                 </button>
                                 <button onclick="deleteHabit(${realIndex})" class="text-slate-400 hover:text-red-500 p-1.5 text-xs transition-colors">🗑️</button>
