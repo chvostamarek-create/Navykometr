@@ -371,4 +371,137 @@
             const slots = [
                 { key: 'priority', title: '🎯 Denní priority (Celý den)', isPriority: true },
                 { key: 'morning', title: '🌅 Ranní návyky', isPriority: false },
-                { key: 'afternoon', title: '☀️ Odpo
+                { key: 'afternoon', title: '☀️ Odpolední návyky', isPriority: false },
+                { key: 'evening', title: '🌙 Večerní návyky', isPriority: false }
+            ];
+
+            let totalDone = 0;
+            let totalCount = habits.length;
+
+            slots.forEach(slot => {
+                let slotHabits = habits.filter(h => h.timeSlot === slot.key);
+                if (slotHabits.length === 0) return;
+
+                slotHabits.sort((a, b) => (a.done === b.done)? 0 : a.done ? 1 : -1);
+
+                const doneInSlot = slotHabits.filter(h => h.done).length;
+                totalDone += doneInSlot;
+                const allDone = doneInSlot === slotHabits.length;
+
+                const isCollapsed = allDone && !manuallyExpanded[slot.key];
+
+                if (isCollapsed) {
+                    // SBALENÁ SEKCE: Pouze obvod (border) v barvě akcentu, vnitřek zůstává klasický dark/light
+                    container.innerHTML += `
+                        <div onclick="toggleSection('${slot.key}')" class="flex items-center justify-between p-4 rounded-3xl cursor-pointer transition-all active:scale-[0.99] shadow-sm bg-white dark:bg-slate-900/60" style="border: 2px solid var(--accent-color);">
+                            <div class="flex items-center gap-3">
+                                <span class="text-lg">✅</span>
+                                <div>
+                                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">${slot.title}</h3>
+                                    <span class="text-xs text-slate-500 dark:text-slate-400">Hotovo (${doneInSlot}/${slotHabits.length}) • Klepni pro zobrazení</span>
+                                </div>
+                            </div>
+                            <span class="text-xs font-bold accent-text">▼</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const boxStyle = slot.isPriority 
+                    ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-500/40' 
+                    : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 shadow-sm';
+                
+                const titleColor = slot.isPriority ? 'text-amber-700 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400';
+
+                let html = `
+                    <div class="p-4 rounded-3xl border ${boxStyle} transition-all">
+                        <div onclick="${allDone ? `toggleSection('${slot.key}')` : ''}" class="flex justify-between items-center mb-3 ${allDone ? 'cursor-pointer' : ''}">
+                            <h3 class="text-xs font-bold ${titleColor} uppercase tracking-wider">${slot.title}</h3>
+                            <span class="text-xs text-slate-400">${doneInSlot}/${slotHabits.length} ${allDone ? '▲' : ''}</span>
+                        </div>
+                        <div class="space-y-2.5">
+                `;
+
+                slotHabits.forEach(habit => {
+                    const realIndex = habits.findIndex(h => h.id === habit.id);
+
+                    html += `
+                        <div class="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-800/90 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 transition-all duration-300">
+                            <div class="flex items-center gap-3 cursor-pointer flex-1" onclick="toggleHabit(${realIndex})">
+                                <span class="text-xl w-10 h-10 flex items-center justify-center rounded-2xl shrink-0 shadow-sm" style="background-color: ${habit.color}20; color: ${habit.color}">${habit.icon}</span>
+                                <div>
+                                    <span class="${habit.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white font-medium'} text-sm block leading-tight transition-all">${habit.title}</span>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">🔥 ${habit.streak} dní v řadě</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 ml-2">
+                                <button onclick="toggleHabit(${realIndex})" class="w-8 h-8 rounded-full flex items-center justify-center text-sm border transition-all ${habit.done ? 'accent-bg accent-border text-white dark:text-slate-950 font-bold shadow-md' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-transparent'}">
+                                    ${habit.done ? '✓' : ''}
+                                </button>
+                                <button onclick="deleteHabit(${realIndex})" class="text-slate-400 hover:text-red-500 p-1.5 text-xs transition-colors">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `</div></div>`;
+                container.innerHTML += html;
+            });
+
+            const percent = totalCount > 0 ? Math.round((totalDone / totalCount) * 100) : 0;
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressText').innerText = `${totalDone} z ${totalCount} splněno (${percent} %)`;
+            
+            const maxStreak = habits.length > 0 ? Math.max(...habits.map(h => h.streak)) : 0;
+            document.getElementById('streakText').innerText = `🔥 Max série: ${maxStreak} dní`;
+        }
+
+        function toggleHabit(index) {
+            triggerHaptic();
+            const slotKey = habits[index].timeSlot;
+            habits[index].done = !habits[index].done;
+            
+            if (habits[index].done) {
+                habits[index].streak += 1;
+                manuallyExpanded[slotKey] = false;
+            } else {
+                habits[index].streak = Math.max(0, habits[index].streak - 1);
+            }
+            saveAndRender();
+        }
+
+        function addHabit() {
+            const titleInput = document.getElementById('habitInput');
+            if (!titleInput.value.trim()) return;
+
+            triggerHaptic();
+            const slot = document.getElementById('timeSlotInput').value;
+            const newHabit = {
+                id: Date.now(),
+                title: titleInput.value.trim(),
+                timeSlot: slot,
+                color: document.getElementById('colorInput').value,
+                icon: document.getElementById('iconInput').value || '⭐',
+                done: false,
+                streak: 0
+            };
+
+            habits.push(newHabit);
+            manuallyExpanded[slot] = true;
+            titleInput.value = '';
+            closeModal();
+            saveAndRender();
+        }
+
+        function deleteHabit(index) {
+            triggerHaptic();
+            if (confirm('Opravdu chceš tento návyk smazat?')) {
+                habits.splice(index, 1);
+                saveAndRender();
+            }
+        }
+
+        render();
+    </script>
+</body>
+</html>
