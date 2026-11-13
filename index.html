@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="cs" id="htmlRoot">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'media', // Automaticky podle systému telefonu (světlý/tmavý)
+            darkMode: 'class', // Přepínání pomocí třídy na HTML elementu
         }
     </script>
     <style>
@@ -34,7 +34,14 @@
     <header class="mb-6 mt-2">
         <div class="flex justify-between items-center mb-2">
             <input type="text" id="appTitleInput" value="Moje Návyky" onchange="saveAppTitle(this.value)" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 app-title-input" placeholder="Název aplikace...">
-            <span id="dateLabel" class="text-xs text-slate-500 dark:text-slate-400 capitalize shrink-0 ml-2"></span>
+            
+            <div class="flex items-center gap-2 shrink-0 ml-2">
+                <!-- Tlačítko pro přímé přepínání režimu (Světlý / Tmavý) -->
+                <button onclick="toggleTheme()" id="themeToggleBtn" class="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-base transition-transform active:scale-90" title="Přepnout vzhled">
+                    🌙
+                </button>
+                <span id="dateLabel" class="text-xs text-slate-500 dark:text-slate-400 capitalize"></span>
+            </div>
         </div>
         <div class="bg-slate-200 dark:bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-300 dark:border-slate-700 shadow-inner">
             <div id="progressBar" class="bg-emerald-500 h-full transition-all duration-500 ease-out" style="width: 0%"></div>
@@ -116,6 +123,34 @@
     </div>
 
     <script>
+        // Správa vzhledu (Light / Dark režim)
+        const htmlRoot = document.getElementById('htmlRoot');
+        const themeBtn = document.getElementById('themeToggleBtn');
+        
+        let currentTheme = localStorage.getItem('app_theme');
+        if (!currentTheme) {
+            // Výchozí podle systému iPhonu
+            currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        applyTheme(currentTheme);
+
+        function toggleTheme() {
+            triggerHaptic();
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(currentTheme);
+            localStorage.setItem('app_theme', currentTheme);
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                htmlRoot.classList.add('dark');
+                themeBtn.innerText = '☀️'; // Když je tma, ikonka nabídne sluníčko pro přepnutí do světla
+            } else {
+                htmlRoot.classList.remove('dark');
+                themeBtn.innerText = '🌙'; // Když je světlo, ikonka nabídne měsíc pro tmavý režim
+            }
+        }
+
         const presetCatalog = [
             { title: 'Trénink / Cvičení 45 min', timeSlot: 'priority', color: '#f59e0b', icon: '🏋️‍♂️' },
             { title: 'Ujít 10 000 kroků', timeSlot: 'priority', color: '#f59e0b', icon: '👟' },
@@ -162,28 +197,29 @@
             { id: 4, title: 'Přečíst 10 stránek', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖', done: false, streak: 0 }
         ];
 
-        let habits = JSON.parse(localStorage.getItem('habits_v4')) || defaultHabits;
-        let savedTitle = localStorage.getItem('app_title_v4') || 'Moje Návyky';
+        let habits = JSON.parse(localStorage.getItem('habits_v5')) || defaultHabits;
+        let savedTitle = localStorage.getItem('app_title_v5') || 'Moje Návyky';
         document.getElementById('appTitleInput').value = savedTitle;
 
         let manuallyExpanded = {};
 
         const todayStr = new Date().toDateString();
-        const lastSavedDate = localStorage.getItem('last_saved_date_v4');
+        const lastSavedDate = localStorage.getItem('last_saved_date_v5');
         if (lastSavedDate !== todayStr) {
             habits.forEach(h => h.done = false);
-            localStorage.setItem('last_saved_date_v4', todayStr);
+            localStorage.setItem('last_saved_date_v5', todayStr);
         }
 
-        document.getElementById('dateLabel').innerText = new Date().toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' });
+        document.getElementById('dateLabel').innerText = new Date().toLocaleDateString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric' });
 
         function saveAppTitle(val) {
-            localStorage.setItem('app_title_v4', val.trim() || 'Moje Návyky');
+            localStorage.setItem('app_title_v5', val.trim() || 'Moje Návyky');
         }
 
         function triggerHaptic() {
-            if (window.navigator && window.navigator.vibrate) {
-                window.navigator.vibrate(15); // Jemné zakmitání telefonu
+            // Silnější pokus o haptiku na podporovaných zařízeních
+            if (window.navigator && typeof window.navigator.vibrate === 'function') {
+                window.navigator.vibrate([30, 40, 30]); // Výraznější vzorec vibrace
             }
         }
 
@@ -269,7 +305,7 @@
         }
 
         function saveAndRender() {
-            localStorage.setItem('habits_v4', JSON.stringify(habits));
+            localStorage.setItem('habits_v5', JSON.stringify(habits));
             render();
         }
 
