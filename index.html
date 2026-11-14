@@ -47,7 +47,6 @@
                     <button onclick="toggleColorMenu()" class="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-sm transition-transform active:scale-90" title="Vybrat barvu">
                         🎨
                     </button>
-                    <!-- Rozbalovací menu s barvami -->
                     <div id="colorMenu" class="hidden absolute right-0 mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-2 z-50 flex gap-2">
                         <button onclick="setAccentColor(0)" class="w-7 h-7 rounded-full bg-emerald-500 hover:scale-110 transition-transform" title="Zelená"></button>
                         <button onclick="setAccentColor(1)" class="w-7 h-7 rounded-full bg-red-500 hover:scale-110 transition-transform" title="Červená"></button>
@@ -78,6 +77,9 @@
 
     <!-- Plovoucí tlačítka vpravo dole -->
     <div class="fixed bottom-6 right-6 flex items-center gap-3 z-40">
+        <button onclick="openStatsModal()" class="w-14 h-14 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-full shadow-xl flex items-center justify-center text-2xl transition-all" title="Statistiky">
+            📊
+        </button>
         <button onclick="openCatalogModal()" class="w-14 h-14 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 accent-text border border-slate-200 dark:border-slate-700 rounded-full shadow-xl flex items-center justify-center text-2xl transition-all" title="Kniha návyků">
             📚
         </button>
@@ -143,13 +145,43 @@
         </div>
     </div>
 
+    <!-- Modální okno: Statistiky a přehled sérií -->
+    <div id="statsModal" class="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md hidden items-end sm:items-center justify-center z-50 p-4 transition-all">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-md max-h-[85vh] flex flex-col p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl mb-2 sm:mb-0 transition-all">
+            <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-200 dark:border-slate-800">
+                <div>
+                    <h2 class="text-base font-bold">📊 Statistiky a série</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Celkové skóre a přehled jednotlivých návyků</p>
+                </div>
+                <button onclick="closeStatsModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl leading-none px-2">✕</button>
+            </div>
+            
+            <div id="statsContent" class="overflow-y-auto space-y-4 pr-1 flex-1 py-2"></div>
+        </div>
+    </div>
     <script>
+        function getDateKey(dateObj = new Date()) {
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function getYesterdayKey() {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            return getDateKey(yesterday);
+        }
+
+        const todayKey = getDateKey();
+        const yesterdayKey = getYesterdayKey();
+
         const accentPalettes = [
-            { name: 'Zelená', color: '#10b981' },   // Emerald
-            { name: 'Červená', color: '#ef4444' },  // Ruby Red
-            { name: 'Modrá', color: '#3b82f6' },    // Ocean Blue
-            { name: 'Fialová', color: '#8b5cf6' },  // Royal Purple
-            { name: 'Oranžová', color: '#f59e0b' }  // Sunset Orange
+            { name: 'Zelená', color: '#10b981' },
+            { name: 'Červená', color: '#ef4444' },
+            { name: 'Modrá', color: '#3b82f6' },
+            { name: 'Fialová', color: '#8b5cf6' },
+            { name: 'Oranžová', color: '#f59e0b' }
         ];
 
         let currentAccentIndex = parseInt(localStorage.getItem('app_accent_idx')) || 0;
@@ -246,30 +278,41 @@
         ];
 
         const defaultHabits = [
-            { id: 10, title: 'Splnit hlavní denní cíl / trénink', timeSlot: 'priority', color: '#f59e0b', icon: '🎯', done: false, streak: 0 },
-            { id: 1, title: 'Pít dostatek vody', timeSlot: 'morning', color: '#3b82f6', icon: '💧', done: false, streak: 0 },
-            { id: 2, title: 'Ustlat postel', timeSlot: 'morning', color: '#10b981', icon: '🛏️', done: false, streak: 0 },
-            { id: 3, title: 'Vyčistit zuby (ráno)', timeSlot: 'morning', color: '#06b6d4', icon: '🪥', done: false, streak: 0 },
-            { id: 4, title: 'Přečíst 10 stránek', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖', done: false, streak: 0 }
+            { id: 10, title: 'Splnit hlavní denní cíl / trénink', timeSlot: 'priority', color: '#f59e0b', icon: '🎯', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null },
+            { id: 1, title: 'Pít dostatek vody', timeSlot: 'morning', color: '#3b82f6', icon: '💧', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null },
+            { id: 2, title: 'Ustlat postel', timeSlot: 'morning', color: '#10b981', icon: '🛏️', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null },
+            { id: 3, title: 'Vyčistit zuby (ráno)', timeSlot: 'morning', color: '#06b6d4', icon: '🪥', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null },
+            { id: 4, title: 'Přečíst 10 stránek', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null }
         ];
 
-        let habits = JSON.parse(localStorage.getItem('habits_v6')) || defaultHabits;
-        let savedTitle = localStorage.getItem('app_title_v6') || 'Moje Návyky';
+        let completedDays = JSON.parse(localStorage.getItem('completed_days_v7')) || [];
+        let habits = JSON.parse(localStorage.getItem('habits_v7')) || defaultHabits;
+        let savedTitle = localStorage.getItem('app_title_v7') || 'Moje Návyky';
         document.getElementById('appTitleInput').value = savedTitle;
 
         let manuallyExpanded = {};
 
-        const todayStr = new Date().toDateString();
-        const lastSavedDate = localStorage.getItem('last_saved_date_v6');
-        if (lastSavedDate !== todayStr) {
-            habits.forEach(h => h.done = false);
-            localStorage.setItem('last_saved_date_v6', todayStr);
+        const lastSavedDate = localStorage.getItem('last_saved_date_v7');
+        if (lastSavedDate && lastSavedDate !== todayKey) {
+            habits.forEach(h => {
+                if (h.lastDoneDate !== yesterdayKey && h.lastDoneDate !== todayKey) {
+                    h.streak = 0;
+                }
+                h.done = false;
+            });
         }
+        localStorage.setItem('last_saved_date_v7', todayKey);
+
+        habits.forEach(h => {
+            h.done = (h.lastDoneDate === todayKey);
+            if (typeof h.bestStreak !== 'number') h.bestStreak = h.streak || 0;
+            if (typeof h.totalCompletions !== 'number') h.totalCompletions = h.streak || 0;
+        });
 
         document.getElementById('dateLabel').innerText = new Date().toLocaleDateString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric' });
 
         function saveAppTitle(val) {
-            localStorage.setItem('app_title_v6', val.trim() || 'Moje Návyky');
+            localStorage.setItem('app_title_v7', val.trim() || 'Moje Návyky');
         }
 
         function triggerHaptic() {
@@ -302,6 +345,30 @@
             const modal = document.getElementById('catalogModal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+        }
+
+        function openStatsModal() {
+            renderStats();
+            const modal = document.getElementById('statsModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeStatsModal() {
+            const modal = document.getElementById('statsModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function updateCompletedDays() {
+            const anyDoneToday = habits.some(h => h.done);
+            const idx = completedDays.indexOf(todayKey);
+            if (anyDoneToday && idx === -1) {
+                completedDays.push(todayKey);
+            } else if (!anyDoneToday && idx !== -1) {
+                completedDays.splice(idx, 1);
+            }
+            localStorage.setItem('completed_days_v7', JSON.stringify(completedDays));
         }
 
         function renderCatalog() {
@@ -345,12 +412,89 @@
                 color: preset.color,
                 icon: preset.icon,
                 done: false,
-                streak: 0
+                streak: 0,
+                bestStreak: 0,
+                totalCompletions: 0,
+                lastDoneDate: null
             };
             habits.push(newHabit);
             manuallyExpanded[preset.timeSlot] = true;
             saveAndRender();
             renderCatalog();
+        }
+
+        function renderStats() {
+            const container = document.getElementById('statsContent');
+            
+            const totalDaysCount = completedDays.length;
+            const totalCompletionsAll = habits.reduce((sum, h) => sum + (h.totalCompletions || 0), 0);
+            const overallBestStreak = habits.length > 0 ? Math.max(...habits.map(h => h.bestStreak || 0)) : 0;
+
+            const slots = [
+                { key: 'priority', label: '🎯 Denní priority' },
+                { key: 'morning', label: '🌅 Ranní návyky' },
+                { key: 'afternoon', label: '☀️ Odpolední návyky' },
+                { key: 'evening', label: '🌙 Večerní návyky' }
+            ];
+
+            let slotStatsHtml = '';
+            slots.forEach(s => {
+                const sHabits = habits.filter(h => h.timeSlot === s.key);
+                const sCompletions = sHabits.reduce((sum, h) => sum + (h.totalCompletions || 0), 0);
+                const sMaxStreak = sHabits.length > 0 ? Math.max(...sHabits.map(h => h.streak || 0)) : 0;
+                slotStatsHtml += `
+                    <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/70 rounded-2xl border border-slate-200/70 dark:border-slate-700/50 text-xs">
+                        <span class="font-semibold">${s.label}</span>
+                        <span class="text-slate-500 dark:text-slate-400">🔥 max ${sMaxStreak} d • ✓ ${sCompletions}×</span>
+                    </div>
+                `;
+            });
+
+            const sortedHabits = [...habits].sort((a, b) => (b.streak || 0) - (a.streak || 0));
+            let habitsStatsHtml = '';
+            sortedHabits.forEach(h => {
+                habitsStatsHtml += `
+                    <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/70 rounded-2xl border border-slate-200/70 dark:border-slate-700/50">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-lg">${h.icon}</span>
+                            <div>
+                                <span class="text-xs font-semibold block">${h.title}</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400">Celkem splněno: ${h.totalCompletions || 0}× • Rekord: ${h.bestStreak || 0} dní</span>
+                            </div>
+                        </div>
+                        <span class="text-xs font-bold px-2.5 py-1 rounded-xl bg-slate-200/80 dark:bg-slate-700/80 accent-text">
+                            🔥 ${h.streak || 0} d
+                        </span>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = `
+                <div class="grid grid-cols-3 gap-2.5 text-center">
+                    <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                        <span class="text-lg font-bold accent-text block">${totalDaysCount}</span>
+                        <span class="text-[10px] text-slate-500 dark:text-slate-400">Aktivních dnů</span>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                        <span class="text-lg font-bold accent-text block">${overallBestStreak}</span>
+                        <span class="text-[10px] text-slate-500 dark:text-slate-400">Nejlepší série</span>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                        <span class="text-lg font-bold accent-text block">${totalCompletionsAll}</span>
+                        <span class="text-[10px] text-slate-500 dark:text-slate-400">Splněno celkem</span>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Podle denních bloků</h3>
+                    <div class="space-y-2">${slotStatsHtml}</div>
+                </div>
+
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Jednotlivé návyky</h3>
+                    <div class="space-y-2">${habitsStatsHtml}</div>
+                </div>
+            `;
         }
 
         function toggleSection(slotKey) {
@@ -360,7 +504,8 @@
         }
 
         function saveAndRender() {
-            localStorage.setItem('habits_v6', JSON.stringify(habits));
+            updateCompletedDays();
+            localStorage.setItem('habits_v7', JSON.stringify(habits));
             render();
         }
 
@@ -391,7 +536,6 @@
                 const isCollapsed = allDone && !manuallyExpanded[slot.key];
 
                 if (isCollapsed) {
-                    // SBALENÁ SEKCE: Pouze obvod (border) v barvě akcentu, vnitřek zůstává klasický dark/light
                     container.innerHTML += `
                         <div onclick="toggleSection('${slot.key}')" class="flex items-center justify-between p-4 rounded-3xl cursor-pointer transition-all active:scale-[0.99] shadow-sm bg-white dark:bg-slate-900/60" style="border: 2px solid var(--accent-color);">
                             <div class="flex items-center gap-3">
@@ -452,21 +596,31 @@
             document.getElementById('progressBar').style.width = percent + '%';
             document.getElementById('progressText').innerText = `${totalDone} z ${totalCount} splněno (${percent} %)`;
             
-            const maxStreak = habits.length > 0 ? Math.max(...habits.map(h => h.streak)) : 0;
+            const maxStreak = habits.length > 0 ? Math.max(...habits.map(h => h.streak || 0)) : 0;
             document.getElementById('streakText').innerText = `🔥 Max série: ${maxStreak} dní`;
         }
 
         function toggleHabit(index) {
             triggerHaptic();
-            const slotKey = habits[index].timeSlot;
-            habits[index].done = !habits[index].done;
-            
-            if (habits[index].done) {
-                habits[index].streak += 1;
+            const habit = habits[index];
+            const slotKey = habit.timeSlot;
+
+            if (!habit.done) {
+                habit.done = true;
+                habit.lastDoneDate = todayKey;
+                habit.streak = (habit.streak || 0) + 1;
+                habit.totalCompletions = (habit.totalCompletions || 0) + 1;
+                if (habit.streak > (habit.bestStreak || 0)) {
+                    habit.bestStreak = habit.streak;
+                }
                 manuallyExpanded[slotKey] = false;
             } else {
-                habits[index].streak = Math.max(0, habits[index].streak - 1);
+                habit.done = false;
+                habit.lastDoneDate = null;
+                habit.streak = Math.max(0, (habit.streak || 1) - 1);
+                habit.totalCompletions = Math.max(0, (habit.totalCompletions || 1) - 1);
             }
+
             saveAndRender();
         }
 
@@ -483,7 +637,10 @@
                 color: document.getElementById('colorInput').value,
                 icon: document.getElementById('iconInput').value || '⭐',
                 done: false,
-                streak: 0
+                streak: 0,
+                bestStreak: 0,
+                totalCompletions: 0,
+                lastDoneDate: null
             };
 
             habits.push(newHabit);
