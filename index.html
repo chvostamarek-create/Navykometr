@@ -119,10 +119,8 @@
         </div>
         <button onclick="dismissReminderBanner()" id="reminderOkBtn" class="px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-xs font-bold shrink-0">OK</button>
     </div>
-
     <!-- Seznam návyků -->
     <div id="sectionsContainer" class="space-y-4"></div>
-
     <!-- Plovoucí tlačítka vpravo dole -->
     <div class="fixed bottom-6 right-6 flex items-center gap-3 z-40">
         <button onclick="openStatsModal()" id="statsBtn" class="w-14 h-14 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-full shadow-xl flex items-center justify-center text-2xl transition-all" title="Statistiky">
@@ -149,7 +147,6 @@
                     <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1" id="habitNameLabel">Název návyku</label>
                     <input type="text" id="habitInput" placeholder="Např. Vzít léky před odchodem..." class="w-full p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm outline-none transition-colors">
                 </div>
-
                 <div>
                     <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1" id="timeSlotLabel">Kdy ho chceš plnit?</label>
                     <select id="timeSlotInput" class="w-full p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm outline-none transition-colors">
@@ -159,7 +156,6 @@
                         <option value="evening" id="optEvening">🌙 Večer</option>
                     </select>
                 </div>
-
                 <div class="flex gap-3">
                     <div class="flex-1">
                         <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1" id="iconLabel">Ikona (Emoji)</label>
