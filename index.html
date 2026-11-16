@@ -119,8 +119,10 @@
         </div>
         <button onclick="dismissReminderBanner()" id="reminderOkBtn" class="px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-xs font-bold shrink-0">OK</button>
     </div>
+
     <!-- Seznam návyků -->
     <div id="sectionsContainer" class="space-y-4"></div>
+
     <!-- Plovoucí tlačítka vpravo dole -->
     <div class="fixed bottom-6 right-6 flex items-center gap-3 z-40">
         <button onclick="openStatsModal()" id="statsBtn" class="w-14 h-14 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-full shadow-xl flex items-center justify-center text-2xl transition-all" title="Statistiky">
@@ -147,6 +149,7 @@
                     <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1" id="habitNameLabel">Název návyku</label>
                     <input type="text" id="habitInput" placeholder="Např. Vzít léky před odchodem..." class="w-full p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm outline-none transition-colors">
                 </div>
+
                 <div>
                     <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1" id="timeSlotLabel">Kdy ho chceš plnit?</label>
                     <select id="timeSlotInput" class="w-full p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm outline-none transition-colors">
@@ -156,6 +159,7 @@
                         <option value="evening" id="optEvening">🌙 Večer</option>
                     </select>
                 </div>
+
                 <div class="flex gap-3">
                     <div class="flex-1">
                         <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1" id="iconLabel">Ikona (Emoji)</label>
@@ -742,10 +746,28 @@
             }
         }
 
+        function getHabitTitle(habit) {
+            const dict = t();
+            if (typeof habit.defaultId === 'number') {
+                const match = dict.defaultHabits.find(dh => dh.id === habit.defaultId);
+                if (match) return match.title;
+            }
+            if (typeof habit.catalogIndex === 'number') {
+                const match = dict.presetCatalog[habit.catalogIndex];
+                if (match) return match.title;
+            }
+            return habit.title;
+        }
+
         function buildInitialHabits(lang) {
             const dict = translations[lang] || translations.cs;
             return dict.defaultHabits.map((h, idx) => ({
-                ...h,
+                id: h.id,
+                defaultId: h.id,
+                title: h.title,
+                timeSlot: h.timeSlot,
+                color: h.color,
+                icon: h.icon,
                 done: false,
                 streak: 0,
                 bestStreak: 0,
@@ -756,15 +778,15 @@
             }));
         }
 
-        let completedDays = JSON.parse(localStorage.getItem('completed_days_v9')) || JSON.parse(localStorage.getItem('completed_days_v8')) || [];
-        let habits = JSON.parse(localStorage.getItem('habits_v9')) || JSON.parse(localStorage.getItem('habits_v8')) || buildInitialHabits(currentLang);
-        let customAppTitle = localStorage.getItem('app_title_custom_v9');
+        let completedDays = JSON.parse(localStorage.getItem('completed_days_v10')) || JSON.parse(localStorage.getItem('completed_days_v9')) || JSON.parse(localStorage.getItem('completed_days_v8')) || [];
+        let habits = JSON.parse(localStorage.getItem('habits_v10')) || JSON.parse(localStorage.getItem('habits_v9')) || JSON.parse(localStorage.getItem('habits_v8')) || buildInitialHabits(currentLang);
+        let customAppTitle = localStorage.getItem('app_title_custom_v10') || localStorage.getItem('app_title_custom_v9');
         if (!customAppTitle) {
             const oldTitle = localStorage.getItem('app_title_v8');
             const defaultTitles = Object.values(translations).map(x => x.defaultAppTitle);
             if (oldTitle && !defaultTitles.includes(oldTitle)) {
                 customAppTitle = oldTitle;
-                localStorage.setItem('app_title_custom_v9', customAppTitle);
+                localStorage.setItem('app_title_custom_v10', customAppTitle);
             }
         }
 
@@ -773,7 +795,7 @@
         let ringingHabitIds = [];
         let lastTriggeredMinute = '';
 
-        const lastSavedDate = localStorage.getItem('last_saved_date_v9') || localStorage.getItem('last_saved_date_v8');
+        const lastSavedDate = localStorage.getItem('last_saved_date_v10') || localStorage.getItem('last_saved_date_v9') || localStorage.getItem('last_saved_date_v8');
         if (lastSavedDate && lastSavedDate !== todayKey) {
             habits.forEach(h => {
                 if (h.lastDoneDate !== yesterdayKey && h.lastDoneDate !== todayKey) {
@@ -782,14 +804,30 @@
                 h.done = false;
             });
         }
-        localStorage.setItem('last_saved_date_v9', todayKey);
+        localStorage.setItem('last_saved_date_v10', todayKey);
 
+        const allLangObjects = Object.values(translations);
         habits.forEach(h => {
             h.done = (h.lastDoneDate === todayKey);
             if (typeof h.bestStreak !== 'number') h.bestStreak = h.streak || 0;
             if (typeof h.totalCompletions !== 'number') h.totalCompletions = h.streak || 0;
             if (typeof h.reminderEnabled !== 'boolean') h.reminderEnabled = false;
             if (!h.reminderTime) h.reminderTime = '07:00';
+
+            if (typeof h.defaultId !== 'number' && typeof h.catalogIndex !== 'number') {
+                for (const langObj of allLangObjects) {
+                    const defMatch = langObj.defaultHabits.find(dh => dh.title === h.title);
+                    if (defMatch) {
+                        h.defaultId = defMatch.id;
+                        break;
+                    }
+                    const catIdx = langObj.presetCatalog.findIndex(pc => pc.title === h.title);
+                    if (catIdx !== -1) {
+                        h.catalogIndex = catIdx;
+                        break;
+                    }
+                }
+            }
         });
 
         function applyLanguageUI() {
@@ -856,14 +894,14 @@
             const currentVal = document.getElementById('appTitleInput').value.trim();
             if (!currentVal || prevDefaultTitles.includes(currentVal)) {
                 customAppTitle = null;
-                localStorage.removeItem('app_title_custom_v9');
+                localStorage.removeItem('app_title_custom_v10');
             }
 
             currentLang = lang;
             localStorage.setItem('app_lang', lang);
             document.getElementById('langMenu').classList.add('hidden');
             applyLanguageUI();
-            render();
+            saveAndRender();
         }
 
         function saveAppTitle(val) {
@@ -871,11 +909,11 @@
             const defaultTitles = Object.values(translations).map(x => x.defaultAppTitle);
             if (!trimmed || defaultTitles.includes(trimmed)) {
                 customAppTitle = null;
-                localStorage.removeItem('app_title_custom_v9');
+                localStorage.removeItem('app_title_custom_v10');
                 document.getElementById('appTitleInput').value = t().defaultAppTitle;
             } else {
                 customAppTitle = trimmed;
-                localStorage.setItem('app_title_custom_v9', trimmed);
+                localStorage.setItem('app_title_custom_v10', trimmed);
             }
         }
 
@@ -917,7 +955,7 @@
             triggerHaptic();
             editingReminderIndex = index;
             const habit = habits[index];
-            document.getElementById('editReminderHabitTitle').innerText = `🔔 ${habit.title}`;
+            document.getElementById('editReminderHabitTitle').innerText = `🔔 ${getHabitTitle(habit)}`;
             document.getElementById('editReminderEnabled').checked = !!habit.reminderEnabled;
             document.getElementById('editReminderTime').value = habit.reminderTime || '07:00';
             if (document.getElementById('editReminderEnabled').checked && 'Notification' in window && Notification.permission === 'default') {
@@ -983,7 +1021,7 @@
             } else if (!anyDoneToday && idx !== -1) {
                 completedDays.splice(idx, 1);
             }
-            localStorage.setItem('completed_days_v9', JSON.stringify(completedDays));
+            localStorage.setItem('completed_days_v10', JSON.stringify(completedDays));
         }
 
         function updateReminderBanner() {
@@ -997,7 +1035,7 @@
                 return;
             }
 
-            const names = activeHabits.map(h => `${h.icon} ${h.title} (${h.reminderTime})`).join(', ');
+            const names = activeHabits.map(h => `${h.icon} ${getHabitTitle(h)} (${h.reminderTime})`).join(', ');
             document.getElementById('reminderBannerText').innerText = names;
             banner.classList.remove('hidden');
             banner.classList.add('flex');
@@ -1032,7 +1070,7 @@
                 if ('Notification' in window && Notification.permission === 'granted') {
                     newlyTriggered.forEach(h => {
                         new Notification(dict.browserNotifTitle, {
-                            body: `${h.icon} ${h.title} (${h.reminderTime})`
+                            body: `${h.icon} ${getHabitTitle(h)} (${h.reminderTime})`
                         });
                     });
                 }
@@ -1054,7 +1092,7 @@
             };
 
             dict.presetCatalog.forEach((item, idx) => {
-                const alreadyAdded = habits.some(h => h.title.toLowerCase() === item.title.toLowerCase());
+                const alreadyAdded = habits.some(h => h.catalogIndex === idx || getHabitTitle(h).toLowerCase() === item.title.toLowerCase());
 
                 list.innerHTML += `
                     <div class="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700/60 transition-all">
@@ -1078,6 +1116,7 @@
             const preset = t().presetCatalog[idx];
             const newHabit = {
                 id: Date.now() + Math.random(),
+                catalogIndex: idx,
                 title: preset.title,
                 timeSlot: preset.timeSlot,
                 color: preset.color,
@@ -1132,7 +1171,7 @@
                         <div class="flex items-center gap-2.5">
                             <span class="text-lg">${h.icon}</span>
                             <div>
-                                <span class="text-xs font-semibold block">${h.title}</span>
+                                <span class="text-xs font-semibold block">${getHabitTitle(h)}</span>
                                 <span class="text-[10px] text-slate-500 dark:text-slate-400">${dict.statHabitSummary(h.totalCompletions || 0, h.bestStreak || 0)}</span>
                             </div>
                         </div>
@@ -1180,7 +1219,7 @@
         function saveAndRender() {
             updateCompletedDays();
             updateReminderBanner();
-            localStorage.setItem('habits_v9', JSON.stringify(habits));
+            localStorage.setItem('habits_v10', JSON.stringify(habits));
             render();
         }
 
@@ -1254,7 +1293,7 @@
                             <div class="flex items-center gap-3 cursor-pointer flex-1" onclick="toggleHabit(${realIndex})">
                                 <span class="text-xl w-10 h-10 flex items-center justify-center rounded-2xl shrink-0 shadow-sm" style="background-color: ${habit.color}20; color: ${habit.color}">${habit.icon}</span>
                                 <div>
-                                    <span class="${habit.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white font-medium'} text-sm block leading-tight transition-all">${habit.title}</span>
+                                    <span class="${habit.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white font-medium'} text-sm block leading-tight transition-all">${getHabitTitle(habit)}</span>
                                     <div class="flex items-center gap-2 mt-1">
                                         <span class="text-[11px] text-slate-500 dark:text-slate-400">${dict.streakInRow(habit.streak)}</span>
                                         <span onclick="event.stopPropagation()">${reminderBadge}</span>
