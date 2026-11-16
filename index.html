@@ -52,21 +52,46 @@
 
     <!-- Hlavička a Progress bar -->
     <header class="mb-6 mt-2 relative">
-        <div class="flex justify-between items-center mb-2">
-            <input type="text" id="appTitleInput" value="Moje Návyky" onchange="saveAppTitle(this.value)" class="text-2xl font-bold accent-text app-title-input" placeholder="Název aplikace...">
+        <div class="flex justify-between items-center mb-2 gap-1.5">
+            <input type="text" id="appTitleInput" value="Moje Návyky" onchange="saveAppTitle(this.value)" class="text-xl sm:text-2xl font-bold accent-text app-title-input min-w-0" placeholder="Název aplikace...">
             
-            <div class="flex items-center gap-1.5 shrink-0 ml-2 relative">
+            <div class="flex items-center gap-1.5 shrink-0 relative">
+                <!-- Přepínač jazyka (CS / EN / DE / ES) -->
+                <div class="relative">
+                    <button onclick="toggleLangMenu()" id="langToggleBtn" class="h-9 px-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-xs font-bold transition-transform active:scale-90" title="Language / Jazyk">
+                        CS
+                    </button>
+                    <div id="langMenu" class="hidden absolute right-0 mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-1.5 z-50 flex flex-col gap-1 min-w-[110px]">
+                        <button onclick="setLanguage('cs')" class="px-3 py-1.5 rounded-xl text-left text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 flex justify-between items-center">
+                            <span>🇨🇿 Čeština</span>
+                            <span id="langCheck_cs" class="accent-text font-bold">✓</span>
+                        </button>
+                        <button onclick="setLanguage('en')" class="px-3 py-1.5 rounded-xl text-left text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 flex justify-between items-center">
+                            <span>🇬🇧 English</span>
+                            <span id="langCheck_en" class="accent-text font-bold hidden">✓</span>
+                        </button>
+                        <button onclick="setLanguage('de')" class="px-3 py-1.5 rounded-xl text-left text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 flex justify-between items-center">
+                            <span>🇩🇪 Deutsch</span>
+                            <span id="langCheck_de" class="accent-text font-bold hidden">✓</span>
+                        </button>
+                        <button onclick="setLanguage('es')" class="px-3 py-1.5 rounded-xl text-left text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 flex justify-between items-center">
+                            <span>🇪🇸 Español</span>
+                            <span id="langCheck_es" class="accent-text font-bold hidden">✓</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Tlačítko pro rozbalení palety barev -->
                 <div class="relative">
-                    <button onclick="toggleColorMenu()" class="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-sm transition-transform active:scale-90" title="Vybrat barvu">
+                    <button onclick="toggleColorMenu()" id="colorBtn" class="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-sm transition-transform active:scale-90" title="Vybrat barvu">
                         🎨
                     </button>
                     <div id="colorMenu" class="hidden absolute right-0 mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-2 z-50 flex gap-2">
-                        <button onclick="setAccentColor(0)" class="w-7 h-7 rounded-full bg-emerald-500 hover:scale-110 transition-transform" title="Zelená"></button>
-                        <button onclick="setAccentColor(1)" class="w-7 h-7 rounded-full bg-red-500 hover:scale-110 transition-transform" title="Červená"></button>
-                        <button onclick="setAccentColor(2)" class="w-7 h-7 rounded-full bg-blue-500 hover:scale-110 transition-transform" title="Modrá"></button>
-                        <button onclick="setAccentColor(3)" class="w-7 h-7 rounded-full bg-purple-500 hover:scale-110 transition-transform" title="Fialová"></button>
-                        <button onclick="setAccentColor(4)" class="w-7 h-7 rounded-full bg-amber-500 hover:scale-110 transition-transform" title="Oranžová"></button>
+                        <button onclick="setAccentColor(0)" class="w-7 h-7 rounded-full bg-emerald-500 hover:scale-110 transition-transform"></button>
+                        <button onclick="setAccentColor(1)" class="w-7 h-7 rounded-full bg-red-500 hover:scale-110 transition-transform"></button>
+                        <button onclick="setAccentColor(2)" class="w-7 h-7 rounded-full bg-blue-500 hover:scale-110 transition-transform"></button>
+                        <button onclick="setAccentColor(3)" class="w-7 h-7 rounded-full bg-purple-500 hover:scale-110 transition-transform"></button>
+                        <button onclick="setAccentColor(4)" class="w-7 h-7 rounded-full bg-amber-500 hover:scale-110 transition-transform"></button>
                     </div>
                 </div>
 
@@ -74,7 +99,7 @@
                 <button onclick="toggleTheme()" id="themeToggleBtn" class="w-9 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-base transition-transform active:scale-90" title="Přepnout vzhled">
                     🌙
                 </button>
-                <span id="dateLabel" class="text-xs text-slate-500 dark:text-slate-400 capitalize ml-1"></span>
+                <span id="dateLabel" class="text-xs text-slate-500 dark:text-slate-400 capitalize ml-0.5"></span>
             </div>
         </div>
         <div class="bg-slate-200 dark:bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-300 dark:border-slate-700 shadow-inner">
@@ -86,13 +111,13 @@
         </div>
     </header>
 
-    <!-- Banner aktivního upozornění (když nastane čas návyku) -->
+    <!-- Banner aktivního upozornění -->
     <div id="reminderBanner" class="hidden mb-4 p-3.5 rounded-2xl bg-amber-100 dark:bg-amber-950/70 border border-amber-400/70 text-amber-950 dark:text-amber-100 shadow-md items-center justify-between gap-2">
         <div class="text-xs">
             <span class="font-bold block" id="reminderBannerTitle">🔔 Čas na návyk!</span>
             <span id="reminderBannerText" class="text-amber-800 dark:text-amber-200/90"></span>
         </div>
-        <button onclick="dismissReminderBanner()" class="px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-xs font-bold shrink-0">OK</button>
+        <button onclick="dismissReminderBanner()" id="reminderOkBtn" class="px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-xs font-bold shrink-0">OK</button>
     </div>
 
     <!-- Seznam návyků -->
@@ -100,13 +125,13 @@
 
     <!-- Plovoucí tlačítka vpravo dole -->
     <div class="fixed bottom-6 right-6 flex items-center gap-3 z-40">
-        <button onclick="openStatsModal()" class="w-14 h-14 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-full shadow-xl flex items-center justify-center text-2xl transition-all" title="Statistiky">
+        <button onclick="openStatsModal()" id="statsBtn" class="w-14 h-14 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-full shadow-xl flex items-center justify-center text-2xl transition-all" title="Statistiky">
             📊
         </button>
-        <button onclick="openCatalogModal()" class="w-14 h-14 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 accent-text border border-slate-200 dark:border-slate-700 rounded-full shadow-xl flex items-center justify-center text-2xl transition-all" title="Kniha návyků">
+        <button onclick="openCatalogModal()" id="catalogBtn" class="w-14 h-14 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 accent-text border border-slate-200 dark:border-slate-700 rounded-full shadow-xl flex items-center justify-center text-2xl transition-all" title="Kniha návyků">
             📚
         </button>
-        <button onclick="openModal()" class="w-14 h-14 accent-bg hover:opacity-90 active:scale-95 text-white dark:text-slate-950 rounded-full shadow-xl flex items-center justify-center text-3xl font-bold transition-all">
+        <button onclick="openModal()" id="addBtn" class="w-14 h-14 accent-bg hover:opacity-90 active:scale-95 text-white dark:text-slate-950 rounded-full shadow-xl flex items-center justify-center text-3xl font-bold transition-all">
             +
         </button>
     </div>
@@ -115,60 +140,60 @@
     <div id="addModal" class="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md hidden items-end sm:items-center justify-center z-50 p-4 transition-all">
         <div class="bg-white dark:bg-slate-900 w-full max-w-md p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl mb-2 sm:mb-0 transition-all">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-base font-bold">✨ Nový návyk</h2>
+                <h2 class="text-base font-bold" id="addModalTitle">✨ Nový návyk</h2>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl leading-none px-2">✕</button>
             </div>
             
             <div class="space-y-4">
                 <div>
-                    <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Název návyku</label>
+                    <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1" id="habitNameLabel">Název návyku</label>
                     <input type="text" id="habitInput" placeholder="Např. Vzít léky před odchodem..." class="w-full p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm outline-none transition-colors">
                 </div>
 
                 <div>
-                    <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Kdy ho chceš plnit?</label>
+                    <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1" id="timeSlotLabel">Kdy ho chceš plnit?</label>
                     <select id="timeSlotInput" class="w-full p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm outline-none transition-colors">
-                        <option value="priority">🎯 Denní priorita (Celý den)</option>
-                        <option value="morning" selected>🌅 Ráno</option>
-                        <option value="afternoon">☀️ Odpoledne</option>
-                        <option value="evening">🌙 Večer</option>
+                        <option value="priority" id="optPriority">🎯 Denní priorita (Celý den)</option>
+                        <option value="morning" id="optMorning" selected>🌅 Ráno</option>
+                        <option value="afternoon" id="optAfternoon">☀️ Odpoledne</option>
+                        <option value="evening" id="optEvening">🌙 Večer</option>
                     </select>
                 </div>
 
                 <div class="flex gap-3">
                     <div class="flex-1">
-                        <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Ikona (Emoji)</label>
+                        <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1" id="iconLabel">Ikona (Emoji)</label>
                         <input type="text" id="iconInput" value="⭐" class="w-full text-center p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-lg">
                     </div>
                     <div class="flex-1">
-                        <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Barva štítku</label>
+                        <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1" id="colorLabel">Barva štítku</label>
                         <input type="color" id="colorInput" value="#10b981" class="w-full h-[50px] rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer p-1">
                     </div>
                 </div>
 
-                <!-- Upozornění (ve výchozím stavu vypnuto) -->
+                <!-- Upozornění -->
                 <div class="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-3">
                     <div class="flex items-center justify-between">
                         <div>
-                            <span class="text-xs font-bold block">🔔 Upozornění v určitý čas</span>
-                            <span class="text-[11px] text-slate-500 dark:text-slate-400">Ve výchozím stavu je vypnuté</span>
+                            <span class="text-xs font-bold block" id="newReminderTitle">🔔 Upozornění v určitý čas</span>
+                            <span class="text-[11px] text-slate-500 dark:text-slate-400" id="newReminderSub">Ve výchozím stavu je vypnuté</span>
                         </div>
                         <input type="checkbox" id="reminderEnabledInput" onchange="toggleNewReminderTimeBox()" class="w-5 h-5 accent-emerald-500 rounded cursor-pointer">
                     </div>
                     <div id="newReminderTimeBox" class="hidden pt-1">
-                        <label class="text-[11px] text-slate-500 dark:text-slate-400 block mb-1">Čas upozornění</label>
+                        <label class="text-[11px] text-slate-500 dark:text-slate-400 block mb-1" id="newReminderTimeLabel">Čas upozornění</label>
                         <input type="time" id="reminderTimeInput" value="06:00" class="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm outline-none">
                     </div>
                 </div>
 
-                <button onclick="addHabit()" class="w-full accent-bg font-bold py-3.5 rounded-2xl text-sm active:scale-95 text-white dark:text-slate-950 mt-2 shadow-lg transition-all">
+                <button onclick="addHabit()" id="saveHabitBtn" class="w-full accent-bg font-bold py-3.5 rounded-2xl text-sm active:scale-95 text-white dark:text-slate-950 mt-2 shadow-lg transition-all">
                     Uložit návyk
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Modální okno: Úprava upozornění u existujícího návyku -->
+    <!-- Modální okno: Úprava upozornění -->
     <div id="reminderEditModal" class="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md hidden items-end sm:items-center justify-center z-50 p-4 transition-all">
         <div class="bg-white dark:bg-slate-900 w-full max-w-md p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl mb-2 sm:mb-0 transition-all">
             <div class="flex justify-between items-center mb-4">
@@ -177,14 +202,14 @@
             </div>
             <div class="space-y-4">
                 <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                    <span class="text-xs font-bold">Zapnout upozornění</span>
+                    <span class="text-xs font-bold" id="editReminderToggleLabel">Zapnout upozornění</span>
                     <input type="checkbox" id="editReminderEnabled" class="w-5 h-5 accent-emerald-500 rounded cursor-pointer">
                 </div>
                 <div>
-                    <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">V kolik hodin upozornit?</label>
+                    <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1" id="editReminderTimeLabel">V kolik hodin upozornit?</label>
                     <input type="time" id="editReminderTime" class="w-full p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm outline-none">
                 </div>
-                <button onclick="saveEditedReminder()" class="w-full accent-bg font-bold py-3.5 rounded-2xl text-sm active:scale-95 text-white dark:text-slate-950 shadow-lg transition-all">
+                <button onclick="saveEditedReminder()" id="saveReminderBtn" class="w-full accent-bg font-bold py-3.5 rounded-2xl text-sm active:scale-95 text-white dark:text-slate-950 shadow-lg transition-all">
                     Uložit upozornění
                 </button>
             </div>
@@ -196,8 +221,8 @@
         <div class="bg-white dark:bg-slate-900 w-full max-w-md max-h-[85vh] flex flex-col p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl mb-2 sm:mb-0 transition-all">
             <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-200 dark:border-slate-800">
                 <div>
-                    <h2 class="text-base font-bold">📚 Knihovna návyků</h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Přidej si ověřené návyky jedním kliknutím</p>
+                    <h2 class="text-base font-bold" id="catalogTitle">📚 Knihovna návyků</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400" id="catalogSubtitle">Přidej si ověřené návyky jedním kliknutím</p>
                 </div>
                 <button onclick="closeCatalogModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl leading-none px-2">✕</button>
             </div>
@@ -206,13 +231,13 @@
         </div>
     </div>
 
-    <!-- Modální okno: Statistiky a přehled sérií -->
+    <!-- Modální okno: Statistiky -->
     <div id="statsModal" class="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md hidden items-end sm:items-center justify-center z-50 p-4 transition-all">
         <div class="bg-white dark:bg-slate-900 w-full max-w-md max-h-[85vh] flex flex-col p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl mb-2 sm:mb-0 transition-all">
             <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-200 dark:border-slate-800">
                 <div>
-                    <h2 class="text-base font-bold">📊 Statistiky a série</h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Celkové skóre a přehled jednotlivých návyků</p>
+                    <h2 class="text-base font-bold" id="statsTitle">📊 Statistiky a série</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400" id="statsSubtitle">Celkové skóre a přehled jednotlivých návyků</p>
                 </div>
                 <button onclick="closeStatsModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl leading-none px-2">✕</button>
             </div>
@@ -221,6 +246,411 @@
         </div>
     </div>
     <script>
+        const translations = {
+            cs: {
+                htmlLang: 'cs',
+                locale: 'cs-CZ',
+                defaultAppTitle: 'Moje Návyky',
+                appTitlePlaceholder: 'Název aplikace...',
+                colorBtnTitle: 'Vybrat barvu',
+                themeBtnTitle: 'Přepnout vzhled',
+                statsBtnTitle: 'Statistiky',
+                catalogBtnTitle: 'Knihovna návyků',
+                progressDone: (done, total, pct) => `${done} z ${total} splněno (${pct} %)`,
+                maxStreakHeader: (max) => `🔥 Max série: ${max} dní`,
+                reminderBannerTitle: '🔔 Čas na návyk!',
+                reminderBannerOk: 'OK',
+                addModalTitle: '✨ Nový návyk',
+                habitNameLabel: 'Název návyku',
+                habitNamePlaceholder: 'Např. Vzít léky před odchodem...',
+                timeSlotLabel: 'Kdy ho chceš plnit?',
+                optPriority: '🎯 Denní priorita (Celý den)',
+                optMorning: '🌅 Ráno',
+                optAfternoon: '☀️ Odpoledne',
+                optEvening: '🌙 Večer',
+                iconLabel: 'Ikona (Emoji)',
+                colorLabel: 'Barva štítku',
+                newReminderTitle: '🔔 Upozornění v určitý čas',
+                newReminderSub: 'Ve výchozím stavu je vypnuté',
+                newReminderTimeLabel: 'Čas upozornění',
+                saveHabitBtn: 'Uložit návyk',
+                editReminderToggleLabel: 'Zapnout upozornění',
+                editReminderTimeLabel: 'V kolik hodin upozornit?',
+                saveReminderBtn: 'Uložit upozornění',
+                catalogTitle: '📚 Knihovna návyků',
+                catalogSubtitle: 'Přidej si ověřené návyky jedním kliknutím',
+                alreadyAdded: 'Přidáno',
+                addPresetBtn: '+ Přidat',
+                statsTitle: '📊 Statistiky a série',
+                statsSubtitle: 'Celkové skóre a přehled jednotlivých návyků',
+                statActiveDays: 'Aktivních dnů',
+                statBestStreak: 'Nejlepší série',
+                statTotalDone: 'Splněno celkem',
+                byBlocksTitle: 'Podle denních bloků',
+                byHabitsTitle: 'Jednotlivé návyky',
+                slotTitlePriority: '🎯 Denní priority (Celý den)',
+                slotTitleMorning: '🌅 Ranní návyky',
+                slotTitleAfternoon: '☀️ Odpolední návyky',
+                slotTitleEvening: '🌙 Večerní návyky',
+                slotShortPriority: '🎯 Denní priority',
+                slotShortMorning: '🌅 Ranní návyky',
+                slotShortAfternoon: '☀️ Odpolední návyky',
+                slotShortEvening: '🌙 Večerní návyky',
+                collapsedDoneText: (done, total) => `Hotovo (${done}/${total}) • Klepni pro zobrazení`,
+                streakInRow: (streak) => `🔥 ${streak} dní v řadě`,
+                setReminderTitle: 'Nastavit upozornění',
+                deleteConfirm: 'Opravdu chceš tento návyk smazat?',
+                statSlotSummary: (max, total) => `🔥 max ${max} d • ✓ ${total}×`,
+                statHabitSummary: (total, best) => `Celkem splněno: ${total}× • Rekord: ${best} dní`,
+                statHabitBadge: (streak) => `🔥 ${streak} d`,
+                browserNotifTitle: '🔔 Upozornění na návyk',
+                defaultHabits: [
+                    { id: 10, title: 'Splnit hlavní denní cíl / trénink', timeSlot: 'priority', color: '#f59e0b', icon: '🎯' },
+                    { id: 1, title: 'Pít dostatek vody', timeSlot: 'morning', color: '#3b82f6', icon: '💧' },
+                    { id: 2, title: 'Ustlat postel', timeSlot: 'morning', color: '#10b981', icon: '🛏️' },
+                    { id: 3, title: 'Vyčistit zuby (ráno)', timeSlot: 'morning', color: '#06b6d4', icon: '🪥' },
+                    { id: 4, title: 'Přečíst 10 stránek', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖' }
+                ],
+                presetCatalog: [
+                    { title: 'Trénink / Cvičení 45 min', timeSlot: 'priority', color: '#f59e0b', icon: '🏋️‍♂️' },
+                    { title: 'Ujít 10 000 kroků', timeSlot: 'priority', color: '#f59e0b', icon: '👟' },
+                    { title: 'Splnit hlavní pracovní úkol', timeSlot: 'priority', color: '#f59e0b', icon: '🎯' },
+                    { title: 'Žádné slazené nápoje', timeSlot: 'priority', color: '#f59e0b', icon: '🚫' },
+                    { title: 'Utrácet s rozmyslem', timeSlot: 'priority', color: '#f59e0b', icon: '💳' },
+                    { title: 'Pít dostatek vody (sklenice po probuzení)', timeSlot: 'morning', color: '#3b82f6', icon: '💧' },
+                    { title: 'Ustlat postel', timeSlot: 'morning', color: '#10b981', icon: '🛏️' },
+                    { title: 'Ranní protažení / jóga 10 min', timeSlot: 'morning', color: '#10b981', icon: '🧘‍♂️' },
+                    { title: 'Vyčistit zuby (ráno)', timeSlot: 'morning', color: '#06b6d4', icon: '🪥' },
+                    { title: 'Studená sprcha / otužování', timeSlot: 'morning', color: '#06b6d4', icon: '🚿' },
+                    { title: 'Zdravá snídaně bez cukru', timeSlot: 'morning', color: '#10b981', icon: '🍳' },
+                    { title: 'Vzít ranní doplňky stravy / vitamíny', timeSlot: 'morning', color: '#8b5cf6', icon: '💊' },
+                    { title: 'Ranní káva v klidu bez telefonu', timeSlot: 'morning', color: '#f59e0b', icon: '☕' },
+                    { title: 'Zápis vděčnosti (3 věci)', timeSlot: 'morning', color: '#ec4899', icon: '✍️' },
+                    { title: 'Vyvětrat ložnici', timeSlot: 'morning', color: '#3b82f6', icon: '🪟' },
+                    { title: 'Přečíst 10 stránek knížky', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖' },
+                    { title: 'Krátká procházka na denním světle', timeSlot: 'afternoon', color: '#3b82f6', icon: '🌳' },
+                    { title: 'Práce na vlastním projektu / snu', timeSlot: 'afternoon', color: '#6366f1', icon: '💻' },
+                    { title: 'Uklidit si pracovní stůl', timeSlot: 'afternoon', color: '#10b981', icon: '🧽' },
+                    { title: 'Jíst ovoce nebo zeleninu', timeSlot: 'afternoon', color: '#10b981', icon: '🍎' },
+                    { title: 'Procvičit cizí jazyk (10 min)', timeSlot: 'afternoon', color: '#f59e0b', icon: '🌍' },
+                    { title: 'Vyřídit důležité maily / zprávy', timeSlot: 'afternoon', color: '#3b82f6', icon: '✉️' },
+                    { title: 'Chvilka ticha bez obrazovek', timeSlot: 'afternoon', color: '#8b5cf6', icon: '🧘' },
+                    { title: 'Dýchací cvičení / pauza', timeSlot: 'afternoon', color: '#06b6d4', icon: '🌬️' },
+                    { title: 'Vykoupat se / sprcha', timeSlot: 'evening', color: '#6366f1', icon: '🚿' },
+                    { title: 'Vyčistit zuby a mezizubní kartáčky', timeSlot: 'evening', color: '#06b6d4', icon: '🪥' },
+                    { title: 'Vypnout obrazovky 30 min před spaním', timeSlot: 'evening', color: '#ec4899', icon: '📵' },
+                    { title: 'Připravit věci na zítřek', timeSlot: 'evening', color: '#f59e0b', icon: '🎒' },
+                    { title: 'Zkontrolovat plán na zítřejší den', timeSlot: 'evening', color: '#3b82f6', icon: '📅' },
+                    { title: 'Vyvětrat ložnici před spaním', timeSlot: 'evening', color: '#3b82f6', icon: '🌙' },
+                    { title: 'Přečíst si kapitolu před spaním', timeSlot: 'evening', color: '#8b5cf6', icon: '🛌' },
+                    { title: 'Jít spát včas (do 23:00)', timeSlot: 'evening', color: '#6366f1', icon: '😴' }
+                ]
+            },
+            en: {
+                htmlLang: 'en',
+                locale: 'en-US',
+                defaultAppTitle: 'My Habits',
+                appTitlePlaceholder: 'App name...',
+                colorBtnTitle: 'Choose color',
+                themeBtnTitle: 'Toggle theme',
+                statsBtnTitle: 'Statistics',
+                catalogBtnTitle: 'Habit Library',
+                progressDone: (done, total, pct) => `${done} of ${total} completed (${pct}%)`,
+                maxStreakHeader: (max) => `🔥 Best streak: ${max} days`,
+                reminderBannerTitle: '🔔 Habit reminder!',
+                reminderBannerOk: 'OK',
+                addModalTitle: '✨ New Habit',
+                habitNameLabel: 'Habit name',
+                habitNamePlaceholder: 'E.g. Take morning meds...',
+                timeSlotLabel: 'When do you want to do it?',
+                optPriority: '🎯 Daily Priority (All day)',
+                optMorning: '🌅 Morning',
+                optAfternoon: '☀️ Afternoon',
+                optEvening: '🌙 Evening',
+                iconLabel: 'Icon (Emoji)',
+                colorLabel: 'Badge color',
+                newReminderTitle: '🔔 Reminder at specific time',
+                newReminderSub: 'Disabled by default',
+                newReminderTimeLabel: 'Reminder time',
+                saveHabitBtn: 'Save Habit',
+                editReminderToggleLabel: 'Enable reminder',
+                editReminderTimeLabel: 'What time to remind?',
+                saveReminderBtn: 'Save Reminder',
+                catalogTitle: '📚 Habit Library',
+                catalogSubtitle: 'Add proven habits with one tap',
+                alreadyAdded: 'Added',
+                addPresetBtn: '+ Add',
+                statsTitle: '📊 Statistics & Streaks',
+                statsSubtitle: 'Overall score and habit breakdown',
+                statActiveDays: 'Active days',
+                statBestStreak: 'Best streak',
+                statTotalDone: 'Total completed',
+                byBlocksTitle: 'By time blocks',
+                byHabitsTitle: 'Individual habits',
+                slotTitlePriority: '🎯 Daily Priorities (All day)',
+                slotTitleMorning: '🌅 Morning Habits',
+                slotTitleAfternoon: '☀️ Afternoon Habits',
+                slotTitleEvening: '🌙 Evening Habits',
+                slotShortPriority: '🎯 Daily Priorities',
+                slotShortMorning: '🌅 Morning Habits',
+                slotShortAfternoon: '☀️ Afternoon Habits',
+                slotShortEvening: '🌙 Evening Habits',
+                collapsedDoneText: (done, total) => `Done (${done}/${total}) • Tap to expand`,
+                streakInRow: (streak) => `🔥 ${streak} days in a row`,
+                setReminderTitle: 'Set reminder',
+                deleteConfirm: 'Are you sure you want to delete this habit?',
+                statSlotSummary: (max, total) => `🔥 max ${max} d • ✓ ${total}×`,
+                statHabitSummary: (total, best) => `Completed: ${total}× • Best: ${best} days`,
+                statHabitBadge: (streak) => `🔥 ${streak} d`,
+                browserNotifTitle: '🔔 Habit Reminder',
+                defaultHabits: [
+                    { id: 10, title: 'Complete main daily goal / workout', timeSlot: 'priority', color: '#f59e0b', icon: '🎯' },
+                    { id: 1, title: 'Drink enough water', timeSlot: 'morning', color: '#3b82f6', icon: '💧' },
+                    { id: 2, title: 'Make the bed', timeSlot: 'morning', color: '#10b981', icon: '🛏️' },
+                    { id: 3, title: 'Brush teeth (morning)', timeSlot: 'morning', color: '#06b6d4', icon: '🪥' },
+                    { id: 4, title: 'Read 10 pages', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖' }
+                ],
+                presetCatalog: [
+                    { title: 'Workout / Exercise 45 min', timeSlot: 'priority', color: '#f59e0b', icon: '🏋️‍♂️' },
+                    { title: 'Walk 10,000 steps', timeSlot: 'priority', color: '#f59e0b', icon: '👟' },
+                    { title: 'Complete top work task', timeSlot: 'priority', color: '#f59e0b', icon: '🎯' },
+                    { title: 'No sugary drinks', timeSlot: 'priority', color: '#f59e0b', icon: '🚫' },
+                    { title: 'Mindful spending', timeSlot: 'priority', color: '#f59e0b', icon: '💳' },
+                    { title: 'Drink water upon waking', timeSlot: 'morning', color: '#3b82f6', icon: '💧' },
+                    { title: 'Make the bed', timeSlot: 'morning', color: '#10b981', icon: '🛏️' },
+                    { title: 'Morning stretch / yoga 10 min', timeSlot: 'morning', color: '#10b981', icon: '🧘‍♂️' },
+                    { title: 'Brush teeth (morning)', timeSlot: 'morning', color: '#06b6d4', icon: '🪥' },
+                    { title: 'Cold shower', timeSlot: 'morning', color: '#06b6d4', icon: '🚿' },
+                    { title: 'Healthy sugar-free breakfast', timeSlot: 'morning', color: '#10b981', icon: '🍳' },
+                    { title: 'Take morning supplements / vitamins', timeSlot: 'morning', color: '#8b5cf6', icon: '💊' },
+                    { title: 'Morning coffee without phone', timeSlot: 'morning', color: '#f59e0b', icon: '☕' },
+                    { title: 'Gratitude log (3 things)', timeSlot: 'morning', color: '#ec4899', icon: '✍️' },
+                    { title: 'Air out the bedroom', timeSlot: 'morning', color: '#3b82f6', icon: '🪟' },
+                    { title: 'Read 10 pages of a book', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖' },
+                    { title: 'Short daylight walk', timeSlot: 'afternoon', color: '#3b82f6', icon: '🌳' },
+                    { title: 'Work on personal project', timeSlot: 'afternoon', color: '#6366f1', icon: '💻' },
+                    { title: 'Tidy up desk', timeSlot: 'afternoon', color: '#10b981', icon: '🧽' },
+                    { title: 'Eat fruit or vegetables', timeSlot: 'afternoon', color: '#10b981', icon: '🍎' },
+                    { title: 'Practice a language (10 min)', timeSlot: 'afternoon', color: '#f59e0b', icon: '🌍' },
+                    { title: 'Handle important messages', timeSlot: 'afternoon', color: '#3b82f6', icon: '✉️' },
+                    { title: 'Screen-free quiet moment', timeSlot: 'afternoon', color: '#8b5cf6', icon: '🧘' },
+                    { title: 'Breathing exercise / break', timeSlot: 'afternoon', color: '#06b6d4', icon: '🌬️' },
+                    { title: 'Take a shower / bath', timeSlot: 'evening', color: '#6366f1', icon: '🚿' },
+                    { title: 'Brush and floss teeth', timeSlot: 'evening', color: '#06b6d4', icon: '🪥' },
+                    { title: 'No screens 30 min before bed', timeSlot: 'evening', color: '#ec4899', icon: '📵' },
+                    { title: 'Prepare things for tomorrow', timeSlot: 'evening', color: '#f59e0b', icon: '🎒' },
+                    { title: 'Review tomorrow’s plan', timeSlot: 'evening', color: '#3b82f6', icon: '📅' },
+                    { title: 'Air out bedroom before sleep', timeSlot: 'evening', color: '#3b82f6', icon: '🌙' },
+                    { title: 'Read a chapter before sleep', timeSlot: 'evening', color: '#8b5cf6', icon: '🛌' },
+                    { title: 'Go to bed early (before 23:00)', timeSlot: 'evening', color: '#6366f1', icon: '😴' }
+                ]
+            },
+            de: {
+                htmlLang: 'de',
+                locale: 'de-DE',
+                defaultAppTitle: 'Meine Gewohnheiten',
+                appTitlePlaceholder: 'App-Name...',
+                colorBtnTitle: 'Farbe wählen',
+                themeBtnTitle: 'Design wechseln',
+                statsBtnTitle: 'Statistiken',
+                catalogBtnTitle: 'Gewohnheitsbibliothek',
+                progressDone: (done, total, pct) => `${done} von ${total} erledigt (${pct}%)`,
+                maxStreakHeader: (max) => `🔥 Beste Serie: ${max} Tage`,
+                reminderBannerTitle: '🔔 Zeit für die Gewohnheit!',
+                reminderBannerOk: 'OK',
+                addModalTitle: '✨ Neue Gewohnheit',
+                habitNameLabel: 'Name der Gewohnheit',
+                habitNamePlaceholder: 'Z. B. Medikamente morgens nehmen...',
+                timeSlotLabel: 'Wann möchtest du sie erledigen?',
+                optPriority: '🎯 Tagespriorität (Ganztägig)',
+                optMorning: '🌅 Morgens',
+                optAfternoon: '☀️ Nachmittags',
+                optEvening: '🌙 Abends',
+                iconLabel: 'Symbol (Emoji)',
+                colorLabel: 'Farbe',
+                newReminderTitle: '🔔 Erinnerung zu fester Uhrzeit',
+                newReminderSub: 'Standardmäßig deaktiviert',
+                newReminderTimeLabel: 'Erinnerungszeit',
+                saveHabitBtn: 'Gewohnheit speichern',
+                editReminderToggleLabel: 'Erinnerung aktivieren',
+                editReminderTimeLabel: 'Um wie viel Uhr erinnern?',
+                saveReminderBtn: 'Erinnerung speichern',
+                catalogTitle: '📚 Gewohnheitsbibliothek',
+                catalogSubtitle: 'Bewährte Gewohnheiten mit einem Klick hinzufügen',
+                alreadyAdded: 'Hinzugefügt',
+                addPresetBtn: '+ Hinzufügen',
+                statsTitle: '📊 Statistiken & Serien',
+                statsSubtitle: 'Gesamtpunkte und Übersicht der Gewohnheiten',
+                statActiveDays: 'Aktive Tage',
+                statBestStreak: 'Beste Serie',
+                statTotalDone: 'Gesamt erledigt',
+                byBlocksTitle: 'Nach Tageszeiten',
+                byHabitsTitle: 'Einzelne Gewohnheiten',
+                slotTitlePriority: '🎯 Tagesprioritäten (Ganztägig)',
+                slotTitleMorning: '🌅 Morgenroutinen',
+                slotTitleAfternoon: '☀️ Nachmittagsroutinen',
+                slotTitleEvening: '🌙 Abendroutinen',
+                slotShortPriority: '🎯 Tagesprioritäten',
+                slotShortMorning: '🌅 Morgenroutinen',
+                slotShortAfternoon: '☀️ Nachmittagsroutinen',
+                slotShortEvening: '🌙 Abendroutinen',
+                collapsedDoneText: (done, total) => `Erledigt (${done}/${total}) • Zum Öffnen tippen`,
+                streakInRow: (streak) => `🔥 ${streak} Tage in Folge`,
+                setReminderTitle: 'Erinnerung festlegen',
+                deleteConfirm: 'Möchtest du diese Gewohnheit wirklich löschen?',
+                statSlotSummary: (max, total) => `🔥 max ${max} T • ✓ ${total}×`,
+                statHabitSummary: (total, best) => `Erledigt: ${total}× • Rekord: ${best} Tage`,
+                statHabitBadge: (streak) => `🔥 ${streak} T`,
+                browserNotifTitle: '🔔 Gewohnheitserinnerung',
+                defaultHabits: [
+                    { id: 10, title: 'Hauptziel / Training erledigen', timeSlot: 'priority', color: '#f59e0b', icon: '🎯' },
+                    { id: 1, title: 'Genug Wasser trinken', timeSlot: 'morning', color: '#3b82f6', icon: '💧' },
+                    { id: 2, title: 'Bett machen', timeSlot: 'morning', color: '#10b981', icon: '🛏️' },
+                    { id: 3, title: 'Zähne putzen (morgens)', timeSlot: 'morning', color: '#06b6d4', icon: '🪥' },
+                    { id: 4, title: '10 Seiten lesen', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖' }
+                ],
+                presetCatalog: [
+                    { title: 'Training / Sport 45 Min.', timeSlot: 'priority', color: '#f59e0b', icon: '🏋️‍♂️' },
+                    { title: '10.000 Schritte gehen', timeSlot: 'priority', color: '#f59e0b', icon: '👟' },
+                    { title: 'Wichtigste Arbeitsaufgabe erledigen', timeSlot: 'priority', color: '#f59e0b', icon: '🎯' },
+                    { title: 'Keine zuckerhaltigen Getränke', timeSlot: 'priority', color: '#f59e0b', icon: '🚫' },
+                    { title: 'Bewusst ausgeben', timeSlot: 'priority', color: '#f59e0b', icon: '💳' },
+                    { title: 'Wasser nach dem Aufstehen trinken', timeSlot: 'morning', color: '#3b82f6', icon: '💧' },
+                    { title: 'Bett machen', timeSlot: 'morning', color: '#10b981', icon: '🛏️' },
+                    { title: 'Morgendehnung / Yoga 10 Min.', timeSlot: 'morning', color: '#10b981', icon: '🧘‍♂️' },
+                    { title: 'Zähne putzen (morgens)', timeSlot: 'morning', color: '#06b6d4', icon: '🪥' },
+                    { title: 'Kalt duschen', timeSlot: 'morning', color: '#06b6d4', icon: '🚿' },
+                    { title: 'Gesundes Frühstück ohne Zucker', timeSlot: 'morning', color: '#10b981', icon: '🍳' },
+                    { title: 'Vitamine / Nahrungsergänzung nehmen', timeSlot: 'morning', color: '#8b5cf6', icon: '💊' },
+                    { title: 'Kaffee ohne Handy genießen', timeSlot: 'morning', color: '#f59e0b', icon: '☕' },
+                    { title: 'Dankbarkeitstagebuch (3 Dinge)', timeSlot: 'morning', color: '#ec4899', icon: '✍️' },
+                    { title: 'Schlafzimmer lüften', timeSlot: 'morning', color: '#3b82f6', icon: '🪟' },
+                    { title: '10 Seiten eines Buches lesen', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖' },
+                    { title: 'Kurzer Spaziergang im Tageslicht', timeSlot: 'afternoon', color: '#3b82f6', icon: '🌳' },
+                    { title: 'An eigenem Projekt arbeiten', timeSlot: 'afternoon', color: '#6366f1', icon: '💻' },
+                    { title: 'Schreibtisch aufräumen', timeSlot: 'afternoon', color: '#10b981', icon: '🧽' },
+                    { title: 'Obst oder Gemüse essen', timeSlot: 'afternoon', color: '#10b981', icon: '🍎' },
+                    { title: 'Fremdsprache üben (10 Min.)', timeSlot: 'afternoon', color: '#f59e0b', icon: '🌍' },
+                    { title: 'Wichtige Nachrichten beantworten', timeSlot: 'afternoon', color: '#3b82f6', icon: '✉️' },
+                    { title: 'Kurze Ruhepause ohne Bildschirme', timeSlot: 'afternoon', color: '#8b5cf6', icon: '🧘' },
+                    { title: 'Atemübung / Pause', timeSlot: 'afternoon', color: '#06b6d4', icon: '🌬️' },
+                    { title: 'Duschen oder baden', timeSlot: 'evening', color: '#6366f1', icon: '🚿' },
+                    { title: 'Zähne putzen & Zahnseide', timeSlot: 'evening', color: '#06b6d4', icon: '🪥' },
+                    { title: '30 Min. vor dem Schlafen Bildschirme aus', timeSlot: 'evening', color: '#ec4899', icon: '📵' },
+                    { title: 'Sachen für morgen bereitlegen', timeSlot: 'evening', color: '#f59e0b', icon: '🎒' },
+                    { title: 'Plan für morgen prüfen', timeSlot: 'evening', color: '#3b82f6', icon: '📅' },
+                    { title: 'Schlafzimmer vor dem Schlafen lüften', timeSlot: 'evening', color: '#3b82f6', icon: '🌙' },
+                    { title: 'Ein Kapitel vor dem Schlafen lesen', timeSlot: 'evening', color: '#8b5cf6', icon: '🛌' },
+                    { title: 'Rechtzeitig schlafen gehen (vor 23:00)', timeSlot: 'evening', color: '#6366f1', icon: '😴' }
+                ]
+            },
+            es: {
+                htmlLang: 'es',
+                locale: 'es-ES',
+                defaultAppTitle: 'Mis Hábitos',
+                appTitlePlaceholder: 'Nombre de la app...',
+                colorBtnTitle: 'Elegir color',
+                themeBtnTitle: 'Cambiar tema',
+                statsBtnTitle: 'Estadísticas',
+                catalogBtnTitle: 'Biblioteca de hábitos',
+                progressDone: (done, total, pct) => `${done} de ${total} completados (${pct}%)`,
+                maxStreakHeader: (max) => `🔥 Mejor racha: ${max} días`,
+                reminderBannerTitle: '🔔 ¡Hora del hábito!',
+                reminderBannerOk: 'OK',
+                addModalTitle: '✨ Nuevo hábito',
+                habitNameLabel: 'Nombre del hábito',
+                habitNamePlaceholder: 'Ej. Tomar medicación por la mañana...',
+                timeSlotLabel: '¿Cuándo quieres cumplirlo?',
+                optPriority: '🎯 Prioridad diaria (Todo el día)',
+                optMorning: '🌅 Mañana',
+                optAfternoon: '☀️ Tarde',
+                optEvening: '🌙 Noche',
+                iconLabel: 'Icono (Emoji)',
+                colorLabel: 'Color de etiqueta',
+                newReminderTitle: '🔔 Recordatorio a una hora fija',
+                newReminderSub: 'Desactivado por defecto',
+                newReminderTimeLabel: 'Hora del recordatorio',
+                saveHabitBtn: 'Guardar hábito',
+                editReminderToggleLabel: 'Activar recordatorio',
+                editReminderTimeLabel: '¿A qué hora recordarlo?',
+                saveReminderBtn: 'Guardar recordatorio',
+                catalogTitle: '📚 Biblioteca de hábitos',
+                catalogSubtitle: 'Añade hábitos probados con un toque',
+                alreadyAdded: 'Añadido',
+                addPresetBtn: '+ Añadir',
+                statsTitle: '📊 Estadísticas y rachas',
+                statsSubtitle: 'Puntuación general y detalle por hábito',
+                statActiveDays: 'Días activos',
+                statBestStreak: 'Mejor racha',
+                statTotalDone: 'Total hechos',
+                byBlocksTitle: 'Por momentos del día',
+                byHabitsTitle: 'Hábitos individuales',
+                slotTitlePriority: '🎯 Prioridades diarias (Todo el día)',
+                slotTitleMorning: '🌅 Hábitos de mañana',
+                slotTitleAfternoon: '☀️ Hábitos de tarde',
+                slotTitleEvening: '🌙 Hábitos de noche',
+                slotShortPriority: '🎯 Prioridades diarias',
+                slotShortMorning: '🌅 Hábitos de mañana',
+                slotShortAfternoon: '☀️ Hábitos de tarde',
+                slotShortEvening: '🌙 Hábitos de noche',
+                collapsedDoneText: (done, total) => `Listo (${done}/${total}) • Toca para abrir`,
+                streakInRow: (streak) => `🔥 ${streak} días seguidos`,
+                setReminderTitle: 'Configurar recordatorio',
+                deleteConfirm: '¿Seguro que quieres eliminar este hábito?',
+                statSlotSummary: (max, total) => `🔥 máx ${max} d • ✓ ${total}×`,
+                statHabitSummary: (total, best) => `Completado: ${total}× • Récord: ${best} días`,
+                statHabitBadge: (streak) => `🔥 ${streak} d`,
+                browserNotifTitle: '🔔 Recordatorio de hábito',
+                defaultHabits: [
+                    { id: 10, title: 'Cumplir objetivo principal / entreno', timeSlot: 'priority', color: '#f59e0b', icon: '🎯' },
+                    { id: 1, title: 'Beber suficiente agua', timeSlot: 'morning', color: '#3b82f6', icon: '💧' },
+                    { id: 2, title: 'Hacer la cama', timeSlot: 'morning', color: '#10b981', icon: '🛏️' },
+                    { id: 3, title: 'Lavarse los dientes (mañana)', timeSlot: 'morning', color: '#06b6d4', icon: '🪥' },
+                    { id: 4, title: 'Leer 10 páginas', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖' }
+                ],
+                presetCatalog: [
+                    { title: 'Entreno / Ejercicio 45 min', timeSlot: 'priority', color: '#f59e0b', icon: '🏋️‍♂️' },
+                    { title: 'Caminar 10 000 pasos', timeSlot: 'priority', color: '#f59e0b', icon: '👟' },
+                    { title: 'Completar tarea principal', timeSlot: 'priority', color: '#f59e0b', icon: '🎯' },
+                    { title: 'Sin bebidas azucaradas', timeSlot: 'priority', color: '#f59e0b', icon: '🚫' },
+                    { title: 'Gastar con criterio', timeSlot: 'priority', color: '#f59e0b', icon: '💳' },
+                    { title: 'Beber agua al despertar', timeSlot: 'morning', color: '#3b82f6', icon: '💧' },
+                    { title: 'Hacer la cama', timeSlot: 'morning', color: '#10b981', icon: '🛏️' },
+                    { title: 'Estiramientos / yoga 10 min', timeSlot: 'morning', color: '#10b981', icon: '🧘‍♂️' },
+                    { title: 'Lavarse los dientes (mañana)', timeSlot: 'morning', color: '#06b6d4', icon: '🪥' },
+                    { title: 'Ducha fría', timeSlot: 'morning', color: '#06b6d4', icon: '🚿' },
+                    { title: 'Desayuno sano sin azúcar', timeSlot: 'morning', color: '#10b981', icon: '🍳' },
+                    { title: 'Tomar vitaminas / suplementos', timeSlot: 'morning', color: '#8b5cf6', icon: '💊' },
+                    { title: 'Café matinal sin móvil', timeSlot: 'morning', color: '#f59e0b', icon: '☕' },
+                    { title: 'Diario de gratitud (3 cosas)', timeSlot: 'morning', color: '#ec4899', icon: '✍️' },
+                    { title: 'Ventilar el dormitorio', timeSlot: 'morning', color: '#3b82f6', icon: '🪟' },
+                    { title: 'Leer 10 páginas de un libro', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖' },
+                    { title: 'Paseo corto con luz natural', timeSlot: 'afternoon', color: '#3b82f6', icon: '🌳' },
+                    { title: 'Trabajar en proyecto personal', timeSlot: 'afternoon', color: '#6366f1', icon: '💻' },
+                    { title: 'Ordenar el escritorio', timeSlot: 'afternoon', color: '#10b981', icon: '🧽' },
+                    { title: 'Comer fruta o verdura', timeSlot: 'afternoon', color: '#10b981', icon: '🍎' },
+                    { title: 'Practicar un idioma (10 min)', timeSlot: 'afternoon', color: '#f59e0b', icon: '🌍' },
+                    { title: 'Responder mensajes importantes', timeSlot: 'afternoon', color: '#3b82f6', icon: '✉️' },
+                    { title: 'Momento de calma sin pantallas', timeSlot: 'afternoon', color: '#8b5cf6', icon: '🧘' },
+                    { title: 'Respiración consciente / pausa', timeSlot: 'afternoon', color: '#06b6d4', icon: '🌬️' },
+                    { title: 'Ducharse o bañarse', timeSlot: 'evening', color: '#6366f1', icon: '🚿' },
+                    { title: 'Cepillarse e hilo dental', timeSlot: 'evening', color: '#06b6d4', icon: '🪥' },
+                    { title: 'Sin pantallas 30 min antes de dormir', timeSlot: 'evening', color: '#ec4899', icon: '📵' },
+                    { title: 'Preparar cosas para mañana', timeSlot: 'evening', color: '#f59e0b', icon: '🎒' },
+                    { title: 'Revisar el plan de mañana', timeSlot: 'evening', color: '#3b82f6', icon: '📅' },
+                    { title: 'Ventilar antes de dormir', timeSlot: 'evening', color: '#3b82f6', icon: '🌙' },
+                    { title: 'Leer un capítulo antes de dormir', timeSlot: 'evening', color: '#8b5cf6', icon: '🛌' },
+                    { title: 'Acostarse temprano (antes de las 23:00)', timeSlot: 'evening', color: '#6366f1', icon: '😴' }
+                ]
+            }
+        };
+        let currentLang = localStorage.getItem('app_lang') || 'cs';
+        if (!translations[currentLang]) currentLang = 'cs';
+
+        function t() {
+            return translations[currentLang] || translations.cs;
+        }
+
         function getDateKey(dateObj = new Date()) {
             const y = dateObj.getFullYear();
             const m = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -255,9 +685,14 @@
         let currentAccentIndex = parseInt(localStorage.getItem('app_accent_idx')) || 0;
         applyAccentColor(currentAccentIndex);
 
+        function toggleLangMenu() {
+            document.getElementById('colorMenu').classList.add('hidden');
+            document.getElementById('langMenu').classList.toggle('hidden');
+        }
+
         function toggleColorMenu() {
-            const menu = document.getElementById('colorMenu');
-            menu.classList.toggle('hidden');
+            document.getElementById('langMenu').classList.add('hidden');
+            document.getElementById('colorMenu').classList.toggle('hidden');
         }
 
         function setAccentColor(index) {
@@ -274,10 +709,14 @@
         }
 
         window.addEventListener('click', function(e) {
-            const menu = document.getElementById('colorMenu');
+            const colorMenu = document.getElementById('colorMenu');
+            const langMenu = document.getElementById('langMenu');
             const btn = e.target.closest('button');
             if (!btn || (!btn.getAttribute('onclick')?.includes('toggleColorMenu') && !btn.getAttribute('onclick')?.includes('setAccentColor'))) {
-                menu.classList.add('hidden');
+                colorMenu.classList.add('hidden');
+            }
+            if (!btn || (!btn.getAttribute('onclick')?.includes('toggleLangMenu') && !btn.getAttribute('onclick')?.includes('setLanguage'))) {
+                langMenu.classList.add('hidden');
             }
         });
 
@@ -307,63 +746,38 @@
             }
         }
 
-        const presetCatalog = [
-            { title: 'Trénink / Cvičení 45 min', timeSlot: 'priority', color: '#f59e0b', icon: '🏋️‍♂️' },
-            { title: 'Ujít 10 000 kroků', timeSlot: 'priority', color: '#f59e0b', icon: '👟' },
-            { title: 'Splnit hlavní pracovní úkol', timeSlot: 'priority', color: '#f59e0b', icon: '🎯' },
-            { title: 'Žádné slazené nápoje', timeSlot: 'priority', color: '#f59e0b', icon: '🚫' },
-            { title: 'Utrácet s rozmyslem', timeSlot: 'priority', color: '#f59e0b', icon: '💳' },
-            
-            { title: 'Pít dostatek vody (sklenice po probuzení)', timeSlot: 'morning', color: '#3b82f6', icon: '💧' },
-            { title: 'Ustlat postel', timeSlot: 'morning', color: '#10b981', icon: '🛏️' },
-            { title: 'Ranní protažení / jóga 10 min', timeSlot: 'morning', color: '#10b981', icon: '🧘‍♂️' },
-            { title: 'Vyčistit zuby (ráno)', timeSlot: 'morning', color: '#06b6d4', icon: '🪥' },
-            { title: 'Studená sprcha / otužování', timeSlot: 'morning', color: '#06b6d4', icon: '🚿' },
-            { title: 'Zdravá snídaně bez cukru', timeSlot: 'morning', color: '#10b981', icon: '🍳' },
-            { title: 'Vzít ranní doplňky stravy / vitamíny', timeSlot: 'morning', color: '#8b5cf6', icon: '💊' },
-            { title: 'Ranní káva v klidu bez telefonu', timeSlot: 'morning', color: '#f59e0b', icon: '☕' },
-            { title: 'Zápis vděčnosti (3 věci)', timeSlot: 'morning', color: '#ec4899', icon: '✍️' },
-            { title: 'Vyvětrat ložnici', timeSlot: 'morning', color: '#3b82f6', icon: '🪟' },
+        function buildInitialHabits(lang) {
+            const dict = translations[lang] || translations.cs;
+            return dict.defaultHabits.map((h, idx) => ({
+                ...h,
+                done: false,
+                streak: 0,
+                bestStreak: 0,
+                totalCompletions: 0,
+                lastDoneDate: null,
+                reminderEnabled: false,
+                reminderTime: idx === 0 ? '08:00' : idx === 1 ? '06:00' : idx === 2 ? '06:15' : idx === 3 ? '06:30' : '15:00'
+            }));
+        }
 
-            { title: 'Přečíst 10 stránek knížky', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖' },
-            { title: 'Krátká procházka na denním světle', timeSlot: 'afternoon', color: '#3b82f6', icon: '🌳' },
-            { title: 'Práce na vlastním projektu / snu', timeSlot: 'afternoon', color: '#6366f1', icon: '💻' },
-            { title: 'Uklidit si pracovní stůl', timeSlot: 'afternoon', color: '#10b981', icon: '🧽' },
-            { title: 'Jíst ovoce nebo zeleninu', timeSlot: 'afternoon', color: '#10b981', icon: '🍎' },
-            { title: 'Procvičit cizí jazyk (10 min)', timeSlot: 'afternoon', color: '#f59e0b', icon: '🌍' },
-            { title: 'Vyřídit důležité maily / zprávy', timeSlot: 'afternoon', color: '#3b82f6', icon: '✉️' },
-            { title: 'Chvilka ticha bez obrazovek', timeSlot: 'afternoon', color: '#8b5cf6', icon: '🧘' },
-            { title: 'Dýchací cvičení / pauza', timeSlot: 'afternoon', color: '#06b6d4', icon: '🌬️' },
-
-            { title: 'Vykoupat se / sprcha', timeSlot: 'evening', color: '#6366f1', icon: '🚿' },
-            { title: 'Vyčistit zuby a mezizubní kartáčky', timeSlot: 'evening', color: '#06b6d4', icon: '🪥' },
-            { title: 'Vypnout obrazovky 30 min před spaním', timeSlot: 'evening', color: '#ec4899', icon: '📵' },
-            { title: 'Připravit věci na zítřek', timeSlot: 'evening', color: '#f59e0b', icon: '🎒' },
-            { title: 'Zkontrolovat plán na zítřejší den', timeSlot: 'evening', color: '#3b82f6', icon: '📅' },
-            { title: 'Vyvětrat ložnici před spaním', timeSlot: 'evening', color: '#3b82f6', icon: '🌙' },
-            { title: 'Přečíst si kapitolu před spaním', timeSlot: 'evening', color: '#8b5cf6', icon: '🛌' },
-            { title: 'Jít spát včas (do 23:00)', timeSlot: 'evening', color: '#6366f1', icon: '😴' }
-        ];
-
-        const defaultHabits = [
-            { id: 10, title: 'Splnit hlavní denní cíl / trénink', timeSlot: 'priority', color: '#f59e0b', icon: '🎯', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null, reminderEnabled: false, reminderTime: '08:00' },
-            { id: 1, title: 'Pít dostatek vody', timeSlot: 'morning', color: '#3b82f6', icon: '💧', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null, reminderEnabled: false, reminderTime: '06:00' },
-            { id: 2, title: 'Ustlat postel', timeSlot: 'morning', color: '#10b981', icon: '🛏️', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null, reminderEnabled: false, reminderTime: '06:15' },
-            { id: 3, title: 'Vyčistit zuby (ráno)', timeSlot: 'morning', color: '#06b6d4', icon: '🪥', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null, reminderEnabled: false, reminderTime: '06:30' },
-            { id: 4, title: 'Přečíst 10 stránek', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null, reminderEnabled: false, reminderTime: '15:00' }
-        ];
-
-        let completedDays = JSON.parse(localStorage.getItem('completed_days_v8')) || [];
-        let habits = JSON.parse(localStorage.getItem('habits_v8')) || defaultHabits;
-        let savedTitle = localStorage.getItem('app_title_v8') || 'Moje Návyky';
-        document.getElementById('appTitleInput').value = savedTitle;
+        let completedDays = JSON.parse(localStorage.getItem('completed_days_v9')) || JSON.parse(localStorage.getItem('completed_days_v8')) || [];
+        let habits = JSON.parse(localStorage.getItem('habits_v9')) || JSON.parse(localStorage.getItem('habits_v8')) || buildInitialHabits(currentLang);
+        let customAppTitle = localStorage.getItem('app_title_custom_v9');
+        if (!customAppTitle) {
+            const oldTitle = localStorage.getItem('app_title_v8');
+            const defaultTitles = Object.values(translations).map(x => x.defaultAppTitle);
+            if (oldTitle && !defaultTitles.includes(oldTitle)) {
+                customAppTitle = oldTitle;
+                localStorage.setItem('app_title_custom_v9', customAppTitle);
+            }
+        }
 
         let manuallyExpanded = {};
         let editingReminderIndex = null;
         let ringingHabitIds = [];
         let lastTriggeredMinute = '';
 
-        const lastSavedDate = localStorage.getItem('last_saved_date_v8');
+        const lastSavedDate = localStorage.getItem('last_saved_date_v9') || localStorage.getItem('last_saved_date_v8');
         if (lastSavedDate && lastSavedDate !== todayKey) {
             habits.forEach(h => {
                 if (h.lastDoneDate !== yesterdayKey && h.lastDoneDate !== todayKey) {
@@ -372,7 +786,7 @@
                 h.done = false;
             });
         }
-        localStorage.setItem('last_saved_date_v8', todayKey);
+        localStorage.setItem('last_saved_date_v9', todayKey);
 
         habits.forEach(h => {
             h.done = (h.lastDoneDate === todayKey);
@@ -382,10 +796,91 @@
             if (!h.reminderTime) h.reminderTime = '07:00';
         });
 
-        document.getElementById('dateLabel').innerText = new Date().toLocaleDateString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric' });
+        function applyLanguageUI() {
+            const dict = t();
+            htmlRoot.setAttribute('lang', dict.htmlLang);
+            document.getElementById('langToggleBtn').innerText = currentLang.toUpperCase();
+
+            ['cs', 'en', 'de', 'es'].forEach(code => {
+                const check = document.getElementById(`langCheck_${code}`);
+                if (check) {
+                    if (code === currentLang) check.classList.remove('hidden');
+                    else check.classList.add('hidden');
+                }
+            });
+
+            const titleInput = document.getElementById('appTitleInput');
+            titleInput.placeholder = dict.appTitlePlaceholder;
+            if (!customAppTitle) {
+                titleInput.value = dict.defaultAppTitle;
+            } else {
+                titleInput.value = customAppTitle;
+            }
+
+            document.getElementById('colorBtn').title = dict.colorBtnTitle;
+            document.getElementById('themeToggleBtn').title = dict.themeBtnTitle;
+            document.getElementById('statsBtn').title = dict.statsBtnTitle;
+            document.getElementById('catalogBtn').title = dict.catalogBtnTitle;
+
+            document.getElementById('dateLabel').innerText = new Date().toLocaleDateString(dict.locale, { weekday: 'short', day: 'numeric', month: 'numeric' });
+
+            document.getElementById('reminderBannerTitle').innerText = dict.reminderBannerTitle;
+            document.getElementById('reminderOkBtn').innerText = dict.reminderBannerOk;
+
+            document.getElementById('addModalTitle').innerText = dict.addModalTitle;
+            document.getElementById('habitNameLabel').innerText = dict.habitNameLabel;
+            document.getElementById('habitInput').placeholder = dict.habitNamePlaceholder;
+            document.getElementById('timeSlotLabel').innerText = dict.timeSlotLabel;
+            document.getElementById('optPriority').innerText = dict.optPriority;
+            document.getElementById('optMorning').innerText = dict.optMorning;
+            document.getElementById('optAfternoon').innerText = dict.optAfternoon;
+            document.getElementById('optEvening').innerText = dict.optEvening;
+            document.getElementById('iconLabel').innerText = dict.iconLabel;
+            document.getElementById('colorLabel').innerText = dict.colorLabel;
+            document.getElementById('newReminderTitle').innerText = dict.newReminderTitle;
+            document.getElementById('newReminderSub').innerText = dict.newReminderSub;
+            document.getElementById('newReminderTimeLabel').innerText = dict.newReminderTimeLabel;
+            document.getElementById('saveHabitBtn').innerText = dict.saveHabitBtn;
+
+            document.getElementById('editReminderToggleLabel').innerText = dict.editReminderToggleLabel;
+            document.getElementById('editReminderTimeLabel').innerText = dict.editReminderTimeLabel;
+            document.getElementById('saveReminderBtn').innerText = dict.saveReminderBtn;
+
+            document.getElementById('catalogTitle').innerText = dict.catalogTitle;
+            document.getElementById('catalogSubtitle').innerText = dict.catalogSubtitle;
+
+            document.getElementById('statsTitle').innerText = dict.statsTitle;
+            document.getElementById('statsSubtitle').innerText = dict.statsSubtitle;
+        }
+
+        function setLanguage(lang) {
+            if (!translations[lang]) return;
+            triggerHaptic();
+            const prevDefaultTitles = Object.values(translations).map(x => x.defaultAppTitle);
+            const currentVal = document.getElementById('appTitleInput').value.trim();
+            if (!currentVal || prevDefaultTitles.includes(currentVal)) {
+                customAppTitle = null;
+                localStorage.removeItem('app_title_custom_v9');
+            }
+
+            currentLang = lang;
+            localStorage.setItem('app_lang', lang);
+            document.getElementById('langMenu').classList.add('hidden');
+            applyLanguageUI();
+            render();
+        }
 
         function saveAppTitle(val) {
-            localStorage.setItem('app_title_v8', val.trim() || 'Moje Návyky');
+            const trimmed = val.trim();
+            const defaultTitles = Object.values(translations).map(x => x.defaultAppTitle);
+            if (!trimmed || defaultTitles.includes(trimmed)) {
+                customAppTitle = null;
+                localStorage.removeItem('app_title_custom_v9');
+                document.getElementById('appTitleInput').value = t().defaultAppTitle;
+            } else {
+                customAppTitle = trimmed;
+                localStorage.setItem('app_title_custom_v9', trimmed);
+            }
         }
 
         function triggerHaptic(pattern = [30, 40, 30]) {
@@ -492,7 +987,7 @@
             } else if (!anyDoneToday && idx !== -1) {
                 completedDays.splice(idx, 1);
             }
-            localStorage.setItem('completed_days_v8', JSON.stringify(completedDays));
+            localStorage.setItem('completed_days_v9', JSON.stringify(completedDays));
         }
 
         function updateReminderBanner() {
@@ -520,6 +1015,7 @@
         }
 
         function checkReminders() {
+            const dict = t();
             const currentHHMM = getCurrentTimeHHMM();
             const minuteStamp = `${todayKey}_${currentHHMM}`;
             if (minuteStamp === lastTriggeredMinute) return;
@@ -539,7 +1035,7 @@
                 triggerHaptic([80, 60, 80, 60, 120]);
                 if ('Notification' in window && Notification.permission === 'granted') {
                     newlyTriggered.forEach(h => {
-                        new Notification('🔔 Upozornění na návyk', {
+                        new Notification(dict.browserNotifTitle, {
                             body: `${h.icon} ${h.title} (${h.reminderTime})`
                         });
                     });
@@ -550,17 +1046,18 @@
         }
 
         function renderCatalog() {
+            const dict = t();
             const list = document.getElementById('catalogList');
             list.innerHTML = '';
 
             const slotNames = {
-                priority: '🎯 Denní priority',
-                morning: '🌅 Ranní návyky',
-                afternoon: '☀️ Odpolední návyky',
-                evening: '🌙 Večer'
+                priority: dict.slotShortPriority,
+                morning: dict.slotShortMorning,
+                afternoon: dict.slotShortAfternoon,
+                evening: dict.slotShortEvening
             };
 
-            presetCatalog.forEach((item, idx) => {
+            dict.presetCatalog.forEach((item, idx) => {
                 const alreadyAdded = habits.some(h => h.title.toLowerCase() === item.title.toLowerCase());
 
                 list.innerHTML += `
@@ -573,7 +1070,7 @@
                             </div>
                         </div>
                         <button onclick="addPresetToHabits(${idx})" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${alreadyAdded ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed' : 'accent-bg text-white dark:text-slate-950 active:scale-95 shadow-md'}" ${alreadyAdded ? 'disabled' : ''}>
-                            ${alreadyAdded ? 'Přidáno' : '+ Přidat'}
+                            ${alreadyAdded ? dict.alreadyAdded : dict.addPresetBtn}
                         </button>
                     </div>
                 `;
@@ -582,7 +1079,7 @@
 
         function addPresetToHabits(idx) {
             triggerHaptic();
-            const preset = presetCatalog[idx];
+            const preset = t().presetCatalog[idx];
             const newHabit = {
                 id: Date.now() + Math.random(),
                 title: preset.title,
@@ -604,6 +1101,7 @@
         }
 
         function renderStats() {
+            const dict = t();
             const container = document.getElementById('statsContent');
             
             const totalDaysCount = completedDays.length;
@@ -611,10 +1109,10 @@
             const overallBestStreak = habits.length > 0 ? Math.max(...habits.map(h => h.bestStreak || 0)) : 0;
 
             const slots = [
-                { key: 'priority', label: '🎯 Denní priority' },
-                { key: 'morning', label: '🌅 Ranní návyky' },
-                { key: 'afternoon', label: '☀️ Odpolední návyky' },
-                { key: 'evening', label: '🌙 Večerní návyky' }
+                { key: 'priority', label: dict.slotShortPriority },
+                { key: 'morning', label: dict.slotShortMorning },
+                { key: 'afternoon', label: dict.slotShortAfternoon },
+                { key: 'evening', label: dict.slotShortEvening }
             ];
 
             let slotStatsHtml = '';
@@ -625,7 +1123,7 @@
                 slotStatsHtml += `
                     <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/70 rounded-2xl border border-slate-200/70 dark:border-slate-700/50 text-xs">
                         <span class="font-semibold">${s.label}</span>
-                        <span class="text-slate-500 dark:text-slate-400">🔥 max ${sMaxStreak} d • ✓ ${sCompletions}×</span>
+                        <span class="text-slate-500 dark:text-slate-400">${dict.statSlotSummary(sMaxStreak, sCompletions)}</span>
                     </div>
                 `;
             });
@@ -639,11 +1137,11 @@
                             <span class="text-lg">${h.icon}</span>
                             <div>
                                 <span class="text-xs font-semibold block">${h.title}</span>
-                                <span class="text-[10px] text-slate-500 dark:text-slate-400">Celkem splněno: ${h.totalCompletions || 0}× • Rekord: ${h.bestStreak || 0} dní</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400">${dict.statHabitSummary(h.totalCompletions || 0, h.bestStreak || 0)}</span>
                             </div>
                         </div>
                         <span class="text-xs font-bold px-2.5 py-1 rounded-xl bg-slate-200/80 dark:bg-slate-700/80 accent-text">
-                            🔥 ${h.streak || 0} d
+                            ${dict.statHabitBadge(h.streak || 0)}
                         </span>
                     </div>
                 `;
@@ -653,25 +1151,25 @@
                 <div class="grid grid-cols-3 gap-2.5 text-center">
                     <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                         <span class="text-lg font-bold accent-text block">${totalDaysCount}</span>
-                        <span class="text-[10px] text-slate-500 dark:text-slate-400">Aktivních dnů</span>
+                        <span class="text-[10px] text-slate-500 dark:text-slate-400">${dict.statActiveDays}</span>
                     </div>
                     <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                         <span class="text-lg font-bold accent-text block">${overallBestStreak}</span>
-                        <span class="text-[10px] text-slate-500 dark:text-slate-400">Nejlepší série</span>
+                        <span class="text-[10px] text-slate-500 dark:text-slate-400">${dict.statBestStreak}</span>
                     </div>
                     <div class="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                         <span class="text-lg font-bold accent-text block">${totalCompletionsAll}</span>
-                        <span class="text-[10px] text-slate-500 dark:text-slate-400">Splněno celkem</span>
+                        <span class="text-[10px] text-slate-500 dark:text-slate-400">${dict.statTotalDone}</span>
                     </div>
                 </div>
 
                 <div>
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Podle denních bloků</h3>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">${dict.byBlocksTitle}</h3>
                     <div class="space-y-2">${slotStatsHtml}</div>
                 </div>
 
                 <div>
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Jednotlivé návyky</h3>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">${dict.byHabitsTitle}</h3>
                     <div class="space-y-2">${habitsStatsHtml}</div>
                 </div>
             `;
@@ -686,19 +1184,20 @@
         function saveAndRender() {
             updateCompletedDays();
             updateReminderBanner();
-            localStorage.setItem('habits_v8', JSON.stringify(habits));
+            localStorage.setItem('habits_v9', JSON.stringify(habits));
             render();
         }
 
         function render() {
+            const dict = t();
             const container = document.getElementById('sectionsContainer');
             container.innerHTML = '';
 
             const slots = [
-                { key: 'priority', title: '🎯 Denní priority (Celý den)', isPriority: true },
-                { key: 'morning', title: '🌅 Ranní návyky', isPriority: false },
-                { key: 'afternoon', title: '☀️ Odpolední návyky', isPriority: false },
-                { key: 'evening', title: '🌙 Večerní návyky', isPriority: false }
+                { key: 'priority', title: dict.slotTitlePriority, isPriority: true },
+                { key: 'morning', title: dict.slotTitleMorning, isPriority: false },
+                { key: 'afternoon', title: dict.slotTitleAfternoon, isPriority: false },
+                { key: 'evening', title: dict.slotTitleEvening, isPriority: false }
             ];
 
             let totalDone = 0;
@@ -723,7 +1222,7 @@
                                 <span class="text-lg">✅</span>
                                 <div>
                                     <h3 class="text-sm font-bold text-slate-900 dark:text-white">${slot.title}</h3>
-                                    <span class="text-xs text-slate-500 dark:text-slate-400">Hotovo (${doneInSlot}/${slotHabits.length}) • Klepni pro zobrazení</span>
+                                    <span class="text-xs text-slate-500 dark:text-slate-400">${dict.collapsedDoneText(doneInSlot, slotHabits.length)}</span>
                                 </div>
                             </div>
                             <span class="text-xs font-bold accent-text">▼</span>
@@ -752,7 +1251,7 @@
                     const isRinging = ringingHabitIds.includes(habit.id) && !habit.done && habit.reminderEnabled;
                     const reminderBadge = habit.reminderEnabled
                         ? `<button onclick="openReminderEditModal(${realIndex})" class="text-[10px] px-2 py-0.5 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold">🔔 ${habit.reminderTime}</button>`
-                        : `<button onclick="openReminderEditModal(${realIndex})" class="text-[10px] px-1.5 py-0.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" title="Nastavit upozornění">🔕</button>`;
+                        : `<button onclick="openReminderEditModal(${realIndex})" class="text-[10px] px-1.5 py-0.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" title="${dict.setReminderTitle}">🔕</button>`;
 
                     html += `
                         <div class="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-800/90 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 transition-all duration-300 ${isRinging ? 'reminder-ringing' : ''}">
@@ -761,7 +1260,7 @@
                                 <div>
                                     <span class="${habit.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white font-medium'} text-sm block leading-tight transition-all">${habit.title}</span>
                                     <div class="flex items-center gap-2 mt-1">
-                                        <span class="text-[11px] text-slate-500 dark:text-slate-400">🔥 ${habit.streak} dní v řadě</span>
+                                        <span class="text-[11px] text-slate-500 dark:text-slate-400">${dict.streakInRow(habit.streak)}</span>
                                         <span onclick="event.stopPropagation()">${reminderBadge}</span>
                                     </div>
                                 </div>
@@ -782,10 +1281,10 @@
 
             const percent = totalCount > 0 ? Math.round((totalDone / totalCount) * 100) : 0;
             document.getElementById('progressBar').style.width = percent + '%';
-            document.getElementById('progressText').innerText = `${totalDone} z ${totalCount} splněno (${percent} %)`;
+            document.getElementById('progressText').innerText = dict.progressDone(totalDone, totalCount, percent);
             
             const maxStreak = habits.length > 0 ? Math.max(...habits.map(h => h.streak || 0)) : 0;
-            document.getElementById('streakText').innerText = `🔥 Max série: ${maxStreak} dní`;
+            document.getElementById('streakText').innerText = dict.maxStreakHeader(maxStreak);
         }
 
         function toggleHabit(index) {
@@ -846,7 +1345,7 @@
 
         function deleteHabit(index) {
             triggerHaptic();
-            if (confirm('Opravdu chceš tento návyk smazat?')) {
+            if (confirm(t().deleteConfirm)) {
                 const removed = habits[index];
                 ringingHabitIds = ringingHabitIds.filter(id => id !== removed.id);
                 habits.splice(index, 1);
@@ -854,6 +1353,7 @@
             }
         }
 
+        applyLanguageUI();
         render();
         checkReminders();
         setInterval(checkReminders, 15000);
