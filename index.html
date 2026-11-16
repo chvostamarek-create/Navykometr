@@ -32,6 +32,20 @@
         input.app-title-input:focus {
             border-bottom: 1px dashed var(--accent-color);
         }
+        @keyframes softAlertPulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.0);
+                border-color: rgba(245, 158, 11, 0.45);
+            }
+            50% {
+                box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.22);
+                border-color: #f59e0b;
+            }
+        }
+        .reminder-ringing {
+            animation: softAlertPulse 1.4s ease-in-out infinite;
+            background-color: rgba(245, 158, 11, 0.08) !important;
+        }
     </style>
 </head>
 <body class="p-4 max-w-md mx-auto pb-28 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
@@ -72,6 +86,15 @@
         </div>
     </header>
 
+    <!-- Banner aktivního upozornění (když nastane čas návyku) -->
+    <div id="reminderBanner" class="hidden mb-4 p-3.5 rounded-2xl bg-amber-100 dark:bg-amber-950/70 border border-amber-400/70 text-amber-950 dark:text-amber-100 shadow-md items-center justify-between gap-2">
+        <div class="text-xs">
+            <span class="font-bold block" id="reminderBannerTitle">🔔 Čas na návyk!</span>
+            <span id="reminderBannerText" class="text-amber-800 dark:text-amber-200/90"></span>
+        </div>
+        <button onclick="dismissReminderBanner()" class="px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-xs font-bold shrink-0">OK</button>
+    </div>
+
     <!-- Seznam návyků -->
     <div id="sectionsContainer" class="space-y-4"></div>
 
@@ -99,7 +122,7 @@
             <div class="space-y-4">
                 <div>
                     <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">Název návyku</label>
-                    <input type="text" id="habitInput" placeholder="Např. 15 000 kroků..." class="w-full p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm outline-none transition-colors">
+                    <input type="text" id="habitInput" placeholder="Např. Vzít léky před odchodem..." class="w-full p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm outline-none transition-colors">
                 </div>
 
                 <div>
@@ -123,8 +146,46 @@
                     </div>
                 </div>
 
+                <!-- Upozornění (ve výchozím stavu vypnuto) -->
+                <div class="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-bold block">🔔 Upozornění v určitý čas</span>
+                            <span class="text-[11px] text-slate-500 dark:text-slate-400">Ve výchozím stavu je vypnuté</span>
+                        </div>
+                        <input type="checkbox" id="reminderEnabledInput" onchange="toggleNewReminderTimeBox()" class="w-5 h-5 accent-emerald-500 rounded cursor-pointer">
+                    </div>
+                    <div id="newReminderTimeBox" class="hidden pt-1">
+                        <label class="text-[11px] text-slate-500 dark:text-slate-400 block mb-1">Čas upozornění</label>
+                        <input type="time" id="reminderTimeInput" value="06:00" class="w-full p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm outline-none">
+                    </div>
+                </div>
+
                 <button onclick="addHabit()" class="w-full accent-bg font-bold py-3.5 rounded-2xl text-sm active:scale-95 text-white dark:text-slate-950 mt-2 shadow-lg transition-all">
                     Uložit návyk
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modální okno: Úprava upozornění u existujícího návyku -->
+    <div id="reminderEditModal" class="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-md hidden items-end sm:items-center justify-center z-50 p-4 transition-all">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-md p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl mb-2 sm:mb-0 transition-all">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-base font-bold" id="editReminderHabitTitle">🔔 Nastavení upozornění</h2>
+                <button onclick="closeReminderEditModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xl leading-none px-2">✕</button>
+            </div>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <span class="text-xs font-bold">Zapnout upozornění</span>
+                    <input type="checkbox" id="editReminderEnabled" class="w-5 h-5 accent-emerald-500 rounded cursor-pointer">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-500 dark:text-slate-400 block mb-1">V kolik hodin upozornit?</label>
+                    <input type="time" id="editReminderTime" class="w-full p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm outline-none">
+                </div>
+                <button onclick="saveEditedReminder()" class="w-full accent-bg font-bold py-3.5 rounded-2xl text-sm active:scale-95 text-white dark:text-slate-950 shadow-lg transition-all">
+                    Uložit upozornění
                 </button>
             </div>
         </div>
@@ -171,6 +232,13 @@
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
             return getDateKey(yesterday);
+        }
+
+        function getCurrentTimeHHMM() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
+            return `${h}:${min}`;
         }
 
         const todayKey = getDateKey();
@@ -278,21 +346,24 @@
         ];
 
         const defaultHabits = [
-            { id: 10, title: 'Splnit hlavní denní cíl / trénink', timeSlot: 'priority', color: '#f59e0b', icon: '🎯', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null },
-            { id: 1, title: 'Pít dostatek vody', timeSlot: 'morning', color: '#3b82f6', icon: '💧', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null },
-            { id: 2, title: 'Ustlat postel', timeSlot: 'morning', color: '#10b981', icon: '🛏️', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null },
-            { id: 3, title: 'Vyčistit zuby (ráno)', timeSlot: 'morning', color: '#06b6d4', icon: '🪥', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null },
-            { id: 4, title: 'Přečíst 10 stránek', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null }
+            { id: 10, title: 'Splnit hlavní denní cíl / trénink', timeSlot: 'priority', color: '#f59e0b', icon: '🎯', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null, reminderEnabled: false, reminderTime: '08:00' },
+            { id: 1, title: 'Pít dostatek vody', timeSlot: 'morning', color: '#3b82f6', icon: '💧', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null, reminderEnabled: false, reminderTime: '06:00' },
+            { id: 2, title: 'Ustlat postel', timeSlot: 'morning', color: '#10b981', icon: '🛏️', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null, reminderEnabled: false, reminderTime: '06:15' },
+            { id: 3, title: 'Vyčistit zuby (ráno)', timeSlot: 'morning', color: '#06b6d4', icon: '🪥', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null, reminderEnabled: false, reminderTime: '06:30' },
+            { id: 4, title: 'Přečíst 10 stránek', timeSlot: 'afternoon', color: '#8b5cf6', icon: '📖', done: false, streak: 0, bestStreak: 0, totalCompletions: 0, lastDoneDate: null, reminderEnabled: false, reminderTime: '15:00' }
         ];
 
-        let completedDays = JSON.parse(localStorage.getItem('completed_days_v7')) || [];
-        let habits = JSON.parse(localStorage.getItem('habits_v7')) || defaultHabits;
-        let savedTitle = localStorage.getItem('app_title_v7') || 'Moje Návyky';
+        let completedDays = JSON.parse(localStorage.getItem('completed_days_v8')) || [];
+        let habits = JSON.parse(localStorage.getItem('habits_v8')) || defaultHabits;
+        let savedTitle = localStorage.getItem('app_title_v8') || 'Moje Návyky';
         document.getElementById('appTitleInput').value = savedTitle;
 
         let manuallyExpanded = {};
+        let editingReminderIndex = null;
+        let ringingHabitIds = [];
+        let lastTriggeredMinute = '';
 
-        const lastSavedDate = localStorage.getItem('last_saved_date_v7');
+        const lastSavedDate = localStorage.getItem('last_saved_date_v8');
         if (lastSavedDate && lastSavedDate !== todayKey) {
             habits.forEach(h => {
                 if (h.lastDoneDate !== yesterdayKey && h.lastDoneDate !== todayKey) {
@@ -301,23 +372,38 @@
                 h.done = false;
             });
         }
-        localStorage.setItem('last_saved_date_v7', todayKey);
+        localStorage.setItem('last_saved_date_v8', todayKey);
 
         habits.forEach(h => {
             h.done = (h.lastDoneDate === todayKey);
             if (typeof h.bestStreak !== 'number') h.bestStreak = h.streak || 0;
             if (typeof h.totalCompletions !== 'number') h.totalCompletions = h.streak || 0;
+            if (typeof h.reminderEnabled !== 'boolean') h.reminderEnabled = false;
+            if (!h.reminderTime) h.reminderTime = '07:00';
         });
 
         document.getElementById('dateLabel').innerText = new Date().toLocaleDateString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric' });
 
         function saveAppTitle(val) {
-            localStorage.setItem('app_title_v7', val.trim() || 'Moje Návyky');
+            localStorage.setItem('app_title_v8', val.trim() || 'Moje Návyky');
         }
 
-        function triggerHaptic() {
+        function triggerHaptic(pattern = [30, 40, 30]) {
             if (window.navigator && typeof window.navigator.vibrate === 'function') {
-                window.navigator.vibrate([30, 40, 30]);
+                window.navigator.vibrate(pattern);
+            }
+        }
+
+        function toggleNewReminderTimeBox() {
+            const enabled = document.getElementById('reminderEnabledInput').checked;
+            const box = document.getElementById('newReminderTimeBox');
+            if (enabled) {
+                box.classList.remove('hidden');
+                if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
+            } else {
+                box.classList.add('hidden');
             }
         }
 
@@ -325,6 +411,8 @@
             const modal = document.getElementById('addModal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+            document.getElementById('reminderEnabledInput').checked = false;
+            document.getElementById('newReminderTimeBox').classList.add('hidden');
             document.getElementById('habitInput').focus();
         }
 
@@ -332,6 +420,42 @@
             const modal = document.getElementById('addModal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+        }
+
+        function openReminderEditModal(index) {
+            triggerHaptic();
+            editingReminderIndex = index;
+            const habit = habits[index];
+            document.getElementById('editReminderHabitTitle').innerText = `🔔 ${habit.title}`;
+            document.getElementById('editReminderEnabled').checked = !!habit.reminderEnabled;
+            document.getElementById('editReminderTime').value = habit.reminderTime || '07:00';
+            if (document.getElementById('editReminderEnabled').checked && 'Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+            const modal = document.getElementById('reminderEditModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeReminderEditModal() {
+            const modal = document.getElementById('reminderEditModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            editingReminderIndex = null;
+        }
+
+        function saveEditedReminder() {
+            if (editingReminderIndex === null) return;
+            triggerHaptic();
+            const habit = habits[editingReminderIndex];
+            habit.reminderEnabled = document.getElementById('editReminderEnabled').checked;
+            habit.reminderTime = document.getElementById('editReminderTime').value || '07:00';
+            if (!habit.reminderEnabled) {
+                ringingHabitIds = ringingHabitIds.filter(id => id !== habit.id);
+                updateReminderBanner();
+            }
+            closeReminderEditModal();
+            saveAndRender();
         }
 
         function openCatalogModal() {
@@ -368,7 +492,61 @@
             } else if (!anyDoneToday && idx !== -1) {
                 completedDays.splice(idx, 1);
             }
-            localStorage.setItem('completed_days_v7', JSON.stringify(completedDays));
+            localStorage.setItem('completed_days_v8', JSON.stringify(completedDays));
+        }
+
+        function updateReminderBanner() {
+            const banner = document.getElementById('reminderBanner');
+            const activeHabits = habits.filter(h => ringingHabitIds.includes(h.id) && !h.done && h.reminderEnabled);
+            ringingHabitIds = activeHabits.map(h => h.id);
+
+            if (activeHabits.length === 0) {
+                banner.classList.add('hidden');
+                banner.classList.remove('flex');
+                return;
+            }
+
+            const names = activeHabits.map(h => `${h.icon} ${h.title} (${h.reminderTime})`).join(', ');
+            document.getElementById('reminderBannerText').innerText = names;
+            banner.classList.remove('hidden');
+            banner.classList.add('flex');
+        }
+
+        function dismissReminderBanner() {
+            triggerHaptic([20]);
+            ringingHabitIds = [];
+            updateReminderBanner();
+            render();
+        }
+
+        function checkReminders() {
+            const currentHHMM = getCurrentTimeHHMM();
+            const minuteStamp = `${todayKey}_${currentHHMM}`;
+            if (minuteStamp === lastTriggeredMinute) return;
+
+            let newlyTriggered = [];
+            habits.forEach(h => {
+                if (h.reminderEnabled && !h.done && h.reminderTime === currentHHMM) {
+                    if (!ringingHabitIds.includes(h.id)) {
+                        ringingHabitIds.push(h.id);
+                        newlyTriggered.push(h);
+                    }
+                }
+            });
+
+            if (newlyTriggered.length > 0) {
+                lastTriggeredMinute = minuteStamp;
+                triggerHaptic([80, 60, 80, 60, 120]);
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    newlyTriggered.forEach(h => {
+                        new Notification('🔔 Upozornění na návyk', {
+                            body: `${h.icon} ${h.title} (${h.reminderTime})`
+                        });
+                    });
+                }
+                updateReminderBanner();
+                render();
+            }
         }
 
         function renderCatalog() {
@@ -415,7 +593,9 @@
                 streak: 0,
                 bestStreak: 0,
                 totalCompletions: 0,
-                lastDoneDate: null
+                lastDoneDate: null,
+                reminderEnabled: false,
+                reminderTime: '07:00'
             };
             habits.push(newHabit);
             manuallyExpanded[preset.timeSlot] = true;
@@ -505,7 +685,8 @@
 
         function saveAndRender() {
             updateCompletedDays();
-            localStorage.setItem('habits_v7', JSON.stringify(habits));
+            updateReminderBanner();
+            localStorage.setItem('habits_v8', JSON.stringify(habits));
             render();
         }
 
@@ -568,14 +749,21 @@
 
                 slotHabits.forEach(habit => {
                     const realIndex = habits.findIndex(h => h.id === habit.id);
+                    const isRinging = ringingHabitIds.includes(habit.id) && !habit.done && habit.reminderEnabled;
+                    const reminderBadge = habit.reminderEnabled
+                        ? `<button onclick="openReminderEditModal(${realIndex})" class="text-[10px] px-2 py-0.5 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold">🔔 ${habit.reminderTime}</button>`
+                        : `<button onclick="openReminderEditModal(${realIndex})" class="text-[10px] px-1.5 py-0.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" title="Nastavit upozornění">🔕</button>`;
 
                     html += `
-                        <div class="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-800/90 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 transition-all duration-300">
+                        <div class="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-800/90 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 transition-all duration-300 ${isRinging ? 'reminder-ringing' : ''}">
                             <div class="flex items-center gap-3 cursor-pointer flex-1" onclick="toggleHabit(${realIndex})">
                                 <span class="text-xl w-10 h-10 flex items-center justify-center rounded-2xl shrink-0 shadow-sm" style="background-color: ${habit.color}20; color: ${habit.color}">${habit.icon}</span>
                                 <div>
                                     <span class="${habit.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white font-medium'} text-sm block leading-tight transition-all">${habit.title}</span>
-                                    <span class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 block">🔥 ${habit.streak} dní v řadě</span>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="text-[11px] text-slate-500 dark:text-slate-400">🔥 ${habit.streak} dní v řadě</span>
+                                        <span onclick="event.stopPropagation()">${reminderBadge}</span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2 ml-2">
@@ -613,6 +801,7 @@
                 if (habit.streak > (habit.bestStreak || 0)) {
                     habit.bestStreak = habit.streak;
                 }
+                ringingHabitIds = ringingHabitIds.filter(id => id !== habit.id);
                 manuallyExpanded[slotKey] = false;
             } else {
                 habit.done = false;
@@ -630,6 +819,9 @@
 
             triggerHaptic();
             const slot = document.getElementById('timeSlotInput').value;
+            const reminderEnabled = document.getElementById('reminderEnabledInput').checked;
+            const reminderTime = document.getElementById('reminderTimeInput').value || '07:00';
+
             const newHabit = {
                 id: Date.now(),
                 title: titleInput.value.trim(),
@@ -640,7 +832,9 @@
                 streak: 0,
                 bestStreak: 0,
                 totalCompletions: 0,
-                lastDoneDate: null
+                lastDoneDate: null,
+                reminderEnabled: reminderEnabled,
+                reminderTime: reminderTime
             };
 
             habits.push(newHabit);
@@ -653,12 +847,16 @@
         function deleteHabit(index) {
             triggerHaptic();
             if (confirm('Opravdu chceš tento návyk smazat?')) {
+                const removed = habits[index];
+                ringingHabitIds = ringingHabitIds.filter(id => id !== removed.id);
                 habits.splice(index, 1);
                 saveAndRender();
             }
         }
 
         render();
+        checkReminders();
+        setInterval(checkReminders, 15000);
     </script>
 </body>
 </html>
